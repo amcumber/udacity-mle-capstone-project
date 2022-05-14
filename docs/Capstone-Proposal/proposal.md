@@ -15,12 +15,23 @@
 >
 > Machine Learning Engineer Nanodegree
 
-## Abstract (TBR)
+## Abstract
+
+This Capstone proposal proposes a notional recommendation model using a
+multi-model approach to provide offer recommendations to users based on the
+user's profile and behavior. The data used for this model will be customer and
+offer data provided by Starbucks in partnership with Udacity. Several data
+preprocessing steps will be required to generate features required for each
+model and optimizations are expected during the implementation process. The
+final product will be a web-based application where a user can input user data
+and receive a recommendation. This author recognizes that this interface will
+likely change to an in-app solution, but the suggested application provides
+additional verification testing to the final model.
 
 ## Background
 
 Marketing new products and offers is a difficult and critical aspect to any
-business endeavor. Well established companies such as Starbucks (R) regularly
+business endeavor. Well established companies such as Starbucks regularly
 require new marketing strategies in order to maintain their customer loyalty
 and maintain an advantage ahead of their competition.
 
@@ -102,15 +113,28 @@ contains the following information.
 
 ## Proposed Solution
 
-TODO
-
-## Benchmark Model
-
-TODO
+In order to produce an effective offer recommendation system, a multi-model
+approach is proposed. First, by categorizing customers into profiles and
+associating offer strategies to each profile and establishing successful and
+unsuccessful strategies to each profile. The final recommendation model will be
+evaluated, first if the tested user has data with a provided offer, if not the
+model will evaluate success based on customer profile.
 
 ## Evaluation Metrics
 
-TODO
+Accuracy will be the primary metric used to evaluate model final model
+performance where accuracy is defined by the ratio between true negative, $TN$,
+and true positive, $TP$, to total events, which is the sum of $TN$, $TP$, false
+negatives, $FN$, and false positives, $FP$.
+
+$$ Accuracy = \frac{TN + TP}{TN+TP+FN+FP}$$
+where, 
+$$ TP = True \space Positive,\space TN = True \space Negative$$
+$$ FP = False \space Positive,\space FN = False \space Negative$$
+
+Additional metrics of bias and sensitivity were considered. However, due to
+the use case for this set of classification algorithms, attention to skew in
+performance does not seem necessary at the moment.
 
 ## Project Design
 
@@ -136,21 +160,23 @@ will comprise the final composite model:
 
 ```mermaid
 graph LR;
-  db3[(Event Data)] --> m1(Customer Profile);
-  db1[(Profile Data)] --> m1(Customer Profile);
-  db2[(Offer Data)] --> m2(Offer Performance);
-  db3[(Event Data)] --> m2(Offer Performance);
-  m1(Customer Profile) --> m2(Offer Performance);
-  m2(Offer Performance) --> m3(Recommendation Model);
-  m1(Customer Profile) --> m3(Recommendation Model);
+  db3[(Event Data)] --> m1(Customer Profile Model);
+  db1[(Profile Data)] --> m1(Customer Profile Model);
+  db2[(Offer Data)] --> m2(Offer Performance Model);
+  db3[(Event Data)] --> m2(Offer Performance Model);
+  m1(Customer Profile Model) --> m2(Offer Performance Model);
+  m2(Offer Performance Model) --> m3(Recommendation Model);
+  m1(Customer Profile Model) --> m3(Recommendation Model);
   input[User Input] --> m3(Recommendation Model);
   m3(Recommendation Model) --> e1((Offer Prediction));
 ```
 
-As a part of the recommendation model solution, an web-based interface will be 
-generated to allow for a user input information regarding a customer and 
-the interface will visualize the model prediction and any additional pertinent
-information useful to the user.
+As a part of the recommendation model solution, an web-based interface will be
+generated to allow for a user input information regarding a customer and the
+interface will visualize the model prediction and any additional pertinent
+information useful to the user. Though, the final model will likely be imbedded
+into an existing app such as the Starbucks phone app. This proposed html-facing
+application can provide additional debugging and verification interfaces.
 
 In order to maintain task execution to the deadlines provided by Udacity's
 machine learning engineer nanodegree course the following schedule is proposed
@@ -159,25 +185,25 @@ to maintain an schedule adherence and evaluation.
 ```mermaid
 gantt
 dateFormat YYYY-MM-DD
-axisFormat %d %b %Y
+axisFormat %d %b
 
 title Capstone Project Schedule
 
 section Milestones
 
-Proposal Submission: milestone, m1,     2022-05-14
-Capstone Submission: milestone, m2,     2022-06-04
+%% Proposal Submission: milestone, m1,     2022-05-14
+%% Capstone Submission: milestone, m2,     2022-06-04
 
 section Proposal
 
-Project Research   : done,      p1,     2022-05-09,    3d
-Capstone Proposal  : active,    write,  after p1,      2d
+Research           : done,      p1,     2022-05-09,    3d
+Proposal           : active,    write,  after p1,      3d
 
 section Implementation
 
-Data Formatting    :            data,   after write,   7d
-Model Design       :            model,  after data,    5d
-Application Design :            app,    after model,   3d
-Project Deployment :            deploy, after model,   3d
-Proposal Report    : crit,      report, after app,     2d
+Data Formatting    :            data,   after write,   6d
+Model Design       :            model,  after data,    6d
+Application Design :            app,    after model,   5d
+Deployment         :            deploy, after model,   5d
+Report             : crit,      report, after app,     2d
 ```
