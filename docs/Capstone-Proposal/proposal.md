@@ -1,11 +1,11 @@
-# Optimizing App Offers With Starbucks (R)
+# Optimizing App Offers With Starbucks
 ### Capstone Proposal for Udacity's Machine Learning Nanodegree
 
 > **Prepared By:**
 >
 > Author: Aaron McUmber, Ph.D.
 >
-> Submission Date: 13 May 2022
+> Submission Date: 14 May 2022
 >
 > Email: aime20acm@gmail.com
 >
@@ -178,10 +178,6 @@ information useful to the user. Though, the final model will likely be imbedded
 into an existing app such as the Starbucks phone app. This proposed html-facing
 application can provide additional debugging and verification interfaces.
 
-In order to maintain task execution to the deadlines provided by Udacity's
-machine learning engineer nanodegree course the following schedule is proposed
-to maintain an schedule adherence and evaluation.
-
 ```mermaid
 gantt
 dateFormat YYYY-MM-DD
@@ -207,3 +203,7 @@ Application Design :            app,    after model,   5d
 Deployment         :            deploy, after model,   5d
 Report             : crit,      report, after app,     2d
 ```
+
+In order to maintain task execution to the deadlines provided by Udacity's
+machine learning engineer nanodegree course the following schedule is proposed
+to maintain an schedule adherence and evaluation.

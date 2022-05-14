@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Ignore pdf script
+make-pdf.ps1
+
+# Ignore packaged submissions
+*.zip
