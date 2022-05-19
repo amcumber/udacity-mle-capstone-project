@@ -9,10 +9,16 @@ FROM base as runtime
 # ENV PATH="/.venv/bin:$PATH"
 
 # create ans switch to a new user
-
 RUN useradd --create-home capstone
 WORKDIR /home/capstone
 USER capstone
 
 # Install application into container
 COPY . .
+
+RUN python3 -m pip install -r requirements.txt
+
+FROM runtime as app
+
+
+CMD ["pip", "list"]
