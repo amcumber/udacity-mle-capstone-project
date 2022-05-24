@@ -1,12 +1,8 @@
 # FROM python:3.9-slim AS base
-FROM pytorch/pytorch:latest AS base
-RUN apt-get update && apt-get install -y --no-install-recommends gcc
+FROM jupyter/scipy-notebook:latest as base
 
+RUN conda install --quiet --yes pytorch torchvision -c soumith
 FROM base as runtime
-
-# # Copy virtual env
-# COPY --from=base /.venv /.venv
-# ENV PATH="/.venv/bin:$PATH"
 
 # create ans switch to a new user
 RUN useradd --create-home capstone
@@ -19,6 +15,3 @@ COPY . .
 RUN python3 -m pip install -r requirements.txt
 
 FROM runtime as app
-
-
-CMD ["pip", "list"]

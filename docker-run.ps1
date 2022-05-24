@@ -1,0 +1,1 @@
+docker run -d -p 80:80 -v $(pwd) amcumber/capstone-project

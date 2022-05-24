@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from itertools import chain
 from typing import Any, Dict, List, Tuple
@@ -6,8 +6,25 @@ from typing import Any, Dict, List, Tuple
 import numpy as np
 import pandas as pd
 
+from capstone_tools.validators import RegistrationError
 
-def assign_empty(ser: pd.Series, assign_to: Dict[Any, Any]) -> pd.Series:
+# _registered_cleaners: dict[str, CleanerBase] = {}
+_registered_cleaners = {}
+
+
+def clean(df: pd.DataFrame, key: str) -> pd.DataFrame:
+    """Clean a dataframe provided a key to a registered CleanerBase class"""
+    global _registered_cleaners
+    cleaner = _registered_cleaners.get(key)
+
+    if not cleaner:
+        raise RegistrationError(
+            f"Cleaner Class not registered, check key: {key}"
+        )
+    return cleaner(df).clean()
+
+
+def _assign_empty(ser: pd.Series, assign_to: Dict[Any, Any]) -> pd.Series:
     """
     Convert a value in a series to a new value - intended for assigning nan to
     coded values
@@ -18,7 +35,7 @@ def assign_empty(ser: pd.Series, assign_to: Dict[Any, Any]) -> pd.Series:
     return ser
 
 
-def assign_categories(
+def _assign_categories(
     df: pd.DataFrame, category_cols: List[Any]
 ) -> pd.DataFrame:
     """
@@ -40,7 +57,7 @@ def assign_categories(
     return new_df
 
 
-def assign_string_cols(
+def _assign_string_cols(
     df: pd.DataFrame, string_cols: List[Any]
 ) -> pd.DataFrame:
     """
@@ -55,6 +72,7 @@ def assign_string_cols(
     is_ordered : bool
         sets columns as an ordered category
     """
+    # Note: assigning is broken if you try to pass multiple evaluation values
     new_df = df.copy()
     for col in string_cols:
         new_df = new_df.assign(
@@ -70,6 +88,7 @@ class CleanerBase(ABC):
 
     df: pd.DataFrame
 
+    @abstractmethod
     def clean(self) -> pd.DataFrame:
         raise NotImplementedError("Implement clean method")
 
@@ -81,28 +100,16 @@ class CleanerBase(ABC):
             key = cls.__name__
         _registered_cleaners[key] = cls
 
-
-class RegistrationError(KeyError):
-    """Registration Error for Cleaner Classes"""
-
-
-# dict[str, CleanerBase]
-_registered_cleaners = {}
-
-
-def clean(df: pd.DataFrame, key: str) -> pd.DataFrame:
-    """Clean a dataframe provided a key to a registered CleanerBase class"""
-    global _registered_cleaners
-    cleaner = _registered_cleaners.get(key)
-
-    if not cleaner:
-        raise RegistrationError(
-            f"Cleaner Class not registered, check key: {key}"
-        )
-    return cleaner(df).clean()
+    @classmethod
+    def unregister(cls, key: str = None) -> None:
+        """Unregister a Transformer"""
+        global _registered_cleaners
+        if not key:
+            key = cls.__name__
+        _registered_cleaners.pop(key)
 
 
-class EventLogCleaner(CleanerBase):
+class TranscriptCleaner(CleanerBase):
     """Cleaner for Transcripts / Event Log DataFrames"""
 
     def clean(self) -> pd.DataFrame:
@@ -116,8 +123,8 @@ class EventLogCleaner(CleanerBase):
 
         return (
             self.df.pipe(self._expand_value_col)
-            .pipe(lambda df_: assign_categories(df_, CAT_COLS))
-            .pipe(lambda df_: assign_string_cols(df_, STR_COLS))
+            .pipe(lambda df_: _assign_categories(df_, CAT_COLS))
+            .pipe(lambda df_: _assign_string_cols(df_, STR_COLS))
             .drop("value", axis=1)
         )
 
@@ -170,7 +177,7 @@ class EventLogCleaner(CleanerBase):
 
 
 class PortfolioCleaner(CleanerBase):
-    """Cleaner for Portfollio DataFrames"""
+    """Cleaner for Portfolio DataFrames"""
 
     def clean(self) -> pd.DataFrame:
         """Clean Portfolio DataFrame"""
@@ -181,8 +188,8 @@ class PortfolioCleaner(CleanerBase):
             assert col in self.df.columns, f"Required column missing: {col}"
 
         return (
-            self.df.pipe(lambda df_: assign_categories(df_, CAT_COLS))
-            .pipe(lambda df_: assign_string_cols(df_, STR_COLS))
+            self.df.pipe(lambda df_: _assign_categories(df_, CAT_COLS))
+            .pipe(lambda df_: _assign_string_cols(df_, STR_COLS))
             .pipe(self.make_one_hot_from_channel)
         )
 
@@ -226,8 +233,8 @@ class ProfileCleaner(CleanerBase):
             assert col in self.df.columns, f"Required column missing: {col}"
 
         return (
-            self.df.pipe(lambda df_: assign_categories(df_, CAT_COLS))
-            .pipe(lambda df_: assign_string_cols(df_, STR_COLS))
+            self.df.pipe(lambda df_: _assign_categories(df_, CAT_COLS))
+            .pipe(lambda df_: _assign_string_cols(df_, STR_COLS))
             .assign(
                 **{
                     col: (
@@ -240,22 +247,22 @@ class ProfileCleaner(CleanerBase):
             )
             .assign(
                 **{
-                    col: (lambda df_: assign_empty(df_[col], na_map))
+                    col: (lambda df_: _assign_empty(df_[col], na_map))
                     for col, na_map in NAN_INPUTS.items()
                 }
             )
         )
 
 
-def __register_classes():
+def __register_cleaners():
     """Register Base Cleaners"""
-    klass_registers = {
-        "transcript": EventLogCleaner,
+    cleaners = {
+        "transcript": TranscriptCleaner,
         "portfolio": PortfolioCleaner,
         "profile": ProfileCleaner,
     }
-    for key, klass in klass_registers.items():
-        klass.register(key)
+    for key, cleaner in cleaners.items():
+        cleaner.register(key)
 
 
-__register_classes()
+__register_cleaners()

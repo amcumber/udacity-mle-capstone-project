@@ -7,8 +7,6 @@
 >
 > Submission Date: 14 May 2022
 >
-> Email: aime20acm@gmail.com
->
 > **Prepared For:**
 >
 > Udacity
