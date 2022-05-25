@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from glob import glob
 from typing import List
 
 import numpy as np

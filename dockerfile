@@ -1,7 +1,6 @@
-# FROM python:3.9-slim AS base
-FROM jupyter/scipy-notebook:latest as base
+FROM pytorch/pytorch:latest as base
 
-RUN conda install --quiet --yes pytorch torchvision -c soumith
+RUN conda install --quiet --yes jupyter 
 FROM base as runtime
 
 # create ans switch to a new user
