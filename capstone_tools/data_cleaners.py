@@ -7,9 +7,11 @@ import numpy as np
 import pandas as pd
 
 from capstone_tools.validators import RegistrationError, validate_cols
+from capstone_tools.enums import PortfolioCols
 
 # _registered_cleaners: dict[str, CleanerBase] = {}
 _registered_cleaners = {}
+PCols = PortfolioCols()
 
 
 def clean(df: pd.DataFrame, key: str) -> pd.DataFrame:
@@ -193,6 +195,7 @@ class PortfolioCleaner(CleanerBase):
             .pipe(lambda df_: _assign_string_cols(df_, STR_COLS))
             .pipe(lambda df_: df_.rename(columns=RENAME_COLS))
             .pipe(self.make_one_hot_from_channel)
+            .pipe(self.make_one_hot_from_offer_type)
             .pipe(self.convert_duration_days_to_hours)
         )
 
@@ -223,10 +226,22 @@ class PortfolioCleaner(CleanerBase):
         return new_df.drop("channels", axis=1)
 
     @staticmethod
-    @validate_cols(("duration_days",))
+    @validate_cols((PCols.offer_type,))
+    def make_one_hot_from_offer_type(df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Converts the channels column into a series of one-hot columns for each
+        category for the portfolio DataFrame
+        """
+        dummies = pd.get_dummies(df[[PCols.offer_type]]).rename(
+            columns=lambda x: x.split(f"{PCols.offer_type}_")[1]
+        )
+        return pd.concat(objs=(df, dummies), axis=1)
+
+    @staticmethod
+    @validate_cols((PCols.duration_days,))
     def convert_duration_days_to_hours(df: pd.DataFrame) -> pd.DataFrame:
-        old_col = "duration_days"
-        col_name = "duration_hours"
+        old_col = PCols.duration_days
+        col_name = PCols.duration_hours
         DAY2HOUR = 24.0
 
         return df.assign(

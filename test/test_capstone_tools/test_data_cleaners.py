@@ -59,6 +59,18 @@ class TestPortfolioCleaner(unittest.TestCase):
         expected = df.loc[0, DAYS_COLS] * DAY2HOUR
         self.assertAlmostEqual(returned.loc[0, HOURS_COL], expected)
 
+    def test_make_one_hot_from_offer_type(self):
+        df = self.transformer.df
+        returned = self.transformer.make_one_hot_from_offer_type(df)
+        expected_cols = [
+            "bogo",
+            "informational",
+            "discount",
+        ]
+        for col in expected_cols:
+            self.assertTrue(col in returned.columns)
+        self.assertTrue(len(df) == len(returned))
+
 
 if __name__ == "__main__":
     unittest.main()
