@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import List
+from typing import List, Tuple, Union
+from uuid import uuid4
+from attr import field
 
 import numpy as np
 import pandas as pd
@@ -31,7 +33,7 @@ def transform(df: pd.DataFrame, key: str, **kwargs) -> pd.DataFrame:
 class TransformerBase(ABC):
     """Abstract Base Class for Transformers"""
 
-    df: pd.DataFrame
+    df: pd.DataFrame = field(repr=False)
 
     @abstractmethod
     def transform(self):
@@ -59,7 +61,7 @@ class TransformerBase(ABC):
 class TranscriptTransformer(TransformerBase):
     """Transformer for Event Log / Transcript dataframe"""
 
-    portfolio: pd.DataFrame
+    portfolio: pd.DataFrame = field(repr=False)
 
     def transform(self) -> pd.DataFrame:
         """
@@ -71,46 +73,52 @@ class TranscriptTransformer(TransformerBase):
             time latest offer started - for each person ID
         elapsed_time : float
             time since last offer that has elapsed
-        duration : float
+        offer_duration : float
             duration of offer
-        is_valid : bool
+        offer_valid : bool
             if offer is valid
-        is_viewed : bool
+        offer_viewed : bool
             if offer has been viewed
         """
-        return (
-            self._merge_portfolio()
-            .pipe(self._assign_offer_start)
-            .pipe(self._assign_offer_duration)
-            .pipe(self._assign_elapsed_time)
-            .pipe(self._assign_is_valid)
-            .pipe(self._assign_is_viewed)
-            .pipe(self._assign_offer_success)
+        MERGE_KEYS = (
+            "id",
+            "duration_hours",
+            "reward",
+            "difficulty",
+            "offer_type",
         )
-        # dfs = []
-        # for _, person_df in df.groupby("person"):
-        #     formatted_df = (
-        #         person_df.pipe(self._assign_offer_start)
-        #         .pipe(self._assign_offer_duration)
-        #         .pipe(self._assign_elapsed_time)
-        #         .pipe(self._assign_is_valid)
-        #         .pipe(self._assign_is_viewed)
-        #         .pipe(self._assign_offer_success)
-        #     )
-        #     dfs.append(formatted_df)
-        # return pd.concat(dfs).sort_values("time")
+        df = self.merge_portfolio(MERGE_KEYS)
+        sort_on = ["event_id", "time"]
+        index_name = df.index.name
+        if index_name is None:
+            index_name = "index"
 
-    def _merge_portfolio(
-        self, portfolio_keys: List[str] = ["id", "duration"]
-    ) -> pd.DataFrame:
-        REQ_KEYS = ("id", "duration")
+        return (
+            df.pipe(self.assign_event_id)
+            .pipe(lambda df: self.sort_by(df, sort_on))
+            .pipe(self.assign_offer_start)
+            .pipe(self.assign_offer_duration)
+            .pipe(self.ffill_offer_id)
+            .pipe(self.assign_elapsed_time)
+            .pipe(self.assign_offer_valid)
+            .pipe(self.assign_offer_viewed)
+            .pipe(self.assign_reward_redeemed)
+            # .pipe(self.assign_offer_success)
+            .pipe(self.calculate_cumulative_transactions)
+            .pipe(self.calculate_costs)
+            .pipe(self.calculate_profit)
+            .pipe(lambda df: self.reset(df, index_name))
+        )
+
+    def merge_portfolio(self, portfolio_keys: List[str]) -> pd.DataFrame:
+        REQ_KEYS = ("id", "duration_hours")
         for key in REQ_KEYS:
             err_txt = f"key: '{key}' is required in `portfolio_keys`"
             assert key in portfolio_keys, err_txt
 
         return pd.merge(
             self.df,
-            self.portfolio[portfolio_keys],
+            self.portfolio[list(portfolio_keys)],
             how="left",
             left_on="offer_id",
             right_on="id",
@@ -118,58 +126,176 @@ class TranscriptTransformer(TransformerBase):
         ).drop("id", axis=1)
 
     @staticmethod
-    @validate_cols(("time",))
-    def _assign_offer_start(person_df: pd.DataFrame) -> pd.DataFrame:
-        """Assign Event Start times to a dataframe filtered by person"""
-        new_df = person_df.assign(start=np.nan)
+    def sort_by(df: pd.DataFrame, keys: List[str]) -> pd.DataFrame:
+        for key in keys:
+            if key not in df.columns:
+                raise AttributeError(f"'{key}' must be present in DataFrame")
 
-        event_starts = new_df.query(f"event == '{Event.received}'")["time"]
-        new_df.loc[event_starts.index, "start"] = event_starts.values
-
-        return new_df.assign(start=lambda df_: df_["start"].ffill())
-
-    @staticmethod
-    @validate_cols(("duration",))
-    def _assign_offer_duration(person_df: pd.DataFrame) -> pd.DataFrame:
-        """Assign Event Durations to dataframe filtered by person"""
-        new_df = person_df.assign(elapsed_time=np.nan)
-        return new_df.assign(duration=lambda df_: df_["duration"].ffill())
+        # index_name = df.index.name
+        # if not index_name:
+        #     index_name = "index"
+        # return df.sort_values(key).reset_index(drop=False), index_name
+        return df.sort_values(keys).reset_index(drop=False)
 
     @staticmethod
-    @validate_cols(("time", "start"))
-    def _assign_elapsed_time(df: pd.DataFrame) -> pd.DataFrame:
+    def reset(df: pd.DataFrame, key: str) -> pd.DataFrame:
+        if key not in df.columns:
+            raise AttributeError(f"'{key}' must be present in DataFrame")
+        return df.set_index(key).sort_index()
+
+    @staticmethod
+    @validate_cols(("time", "event_id", "event"))
+    def assign_offer_start(df: pd.DataFrame) -> pd.DataFrame:
+        """Assign Event Start times to a dataframe filtered by event id"""
+        EVENT_COL = "event"
+        col_name = "offer_start"
+        new_df = df.assign(**{col_name: np.nan})
+
+        event_starts = new_df.query(f"{EVENT_COL} == '{Event.received}'")[
+            "time"
+        ]
+        new_df.loc[event_starts.index, col_name] = event_starts.values
+
+        return new_df.assign(**{col_name: (lambda df_: df_[col_name].ffill())})
+
+    @staticmethod
+    @validate_cols(("duration_hours",))
+    def assign_offer_duration(df: pd.DataFrame) -> pd.DataFrame:
+        """Assign Event Durations to dataframe filtered by event id"""
+        col_name = "offer_duration"
+        parent_col = "duration_hours"
+        return df.assign(**{col_name: (lambda df_: df_[parent_col].ffill())})
+
+    @staticmethod
+    @validate_cols(("time", "offer_start"))
+    def assign_elapsed_time(df: pd.DataFrame) -> pd.DataFrame:
+
         """Assign elapsed time of offer"""
-        return df.assign(elapsed_time=lambda df_: df_["time"] - df_["start"])
-
-    @staticmethod
-    @validate_cols(("elapsed_time", "duration"))
-    def _assign_is_valid(df: pd.DataFrame) -> pd.DataFrame:
-        """Assign valid Boolean for valid offers"""
+        col_name = "elapsed_time"
         return df.assign(
-            is_valid=lambda df_: df_["elapsed_time"] <= df_["duration"]
+            **{col_name: (lambda df_: df_["time"] - df_["offer_start"])}
         )
 
     @staticmethod
-    def _assign_is_viewed(person_df: pd.DataFrame) -> pd.DataFrame:
+    @validate_cols(("elapsed_time", "offer_duration"))
+    def assign_offer_valid(df: pd.DataFrame) -> pd.DataFrame:
+        """Assign valid Boolean for valid offers"""
+        col_name = "offer_valid"
+        return df.assign(
+            **{
+                col_name: (
+                    lambda df_: df_["elapsed_time"] <= df_["offer_duration"]
+                )
+            }
+        )
+
+    @staticmethod
+    @validate_cols(("event",))
+    def assign_offer_viewed(df: pd.DataFrame) -> pd.DataFrame:
         """Assign viewed boolean for events after an offer is viewed"""
-        new_df = person_df.assign(is_viewed=False)
-        offer_views = new_df.query(f"event == '{Event.viewed}'").index
-        new_df.loc[offer_views, "is_viewed"] = True
-        return new_df.assign(is_viewed=lambda df_: df_["is_viewed"].ffill())
+        EVENT_COL = "event"
+        col_name = "offer_viewed"
+        new_df = df.assign(**{col_name: np.nan})
+        offer_views = new_df.query(f"{EVENT_COL} == '{Event.viewed}'").index
+        offer_starts = new_df.query(f"{EVENT_COL} == '{Event.received}'").index
+        new_df.loc[offer_views, col_name] = True
+        new_df.loc[offer_starts, col_name] = False
+        return new_df.assign(**{col_name: (lambda df_: df_[col_name].ffill())})
 
     @staticmethod
-    def _assign_offer_success(df: pd.DataFrame) -> pd.DataFrame:
+    @validate_cols(("event",))
+    def assign_reward_redeemed(df: pd.DataFrame) -> pd.DataFrame:
+        """Assign viewed boolean for events after an offer is viewed"""
+        EVENT_COL = "event"
+        col_name = "reward_redeemed"
+        new_df = df.assign(**{col_name: np.nan})
+        offer_starts = new_df.query(f"{EVENT_COL} == '{Event.received}'").index
+        offer_rewarded = new_df.query(
+            f"{EVENT_COL} == '{Event.completed}'"
+        ).index
+        new_df.loc[offer_starts, col_name] = False
+        new_df.loc[offer_rewarded, col_name] = True
+        return new_df.assign(**{col_name: (lambda df_: df_[col_name].ffill())})
+
+    # # [ACM] Removing since I expect the model to assess if the offer was
+    # #       successful
+    #
+    # @staticmethod
+    # @validate_cols(("offer_viewed", "offer_valid"))
+    # def assign_offer_success(df: pd.DataFrame) -> pd.DataFrame:
+    #     """
+    #     Assign transaction events successful if offer_viewed and offer_valid are
+    #     both true
+    #     """
+    #     new_df = df.assign(offer_success=False)
+    #     transactions = new_df.query(f"event == '{Event.transaction}'").index
+    #     new_df.loc[transactions, "offer_success"] = (
+    #         new_df.loc[transactions, "offer_viewed"]
+    #         & new_df.loc[transactions, "offer_valid"]
+    #     )
+    #     return new_df
+
+    @staticmethod
+    def assign_event_id(
+        df: pd.DataFrame, sorted_key: List[str] = ["person", "time"]
+    ) -> pd.DataFrame:
         """
-        Assign transaction events successful if is_viewed and is_valid are
-        both true
+        Generate an event ID column for each offer event - ends when a new
+        offer is sent
         """
-        new_df = df.assign(offer_success=False)
-        transactions = new_df.query(f"event == '{Event.transaction}'").index
-        new_df.loc[transactions, "offer_success"] = (
-            new_df.loc[transactions, "is_viewed"]
-            & new_df.loc[transactions, "is_valid"]
+        col_name = "event_id"
+        for ele in sorted_key:
+            if ele not in df.columns:
+                raise AttributeError(f"'{ele}' must be present in DataFrame")
+        index_name = df.index.name
+        if not index_name:
+            index_name = "index"
+        new_df = (
+            df.sort_values(sorted_key)
+            .reset_index(drop=False)
+            .assign(**{col_name: np.nan})
         )
-        return new_df
+
+        sub_df = new_df.query(f'event == "{Event.received}"').assign(
+            **{
+                col_name: (
+                    lambda df: (df.apply(lambda _: uuid4().hex, axis=1))
+                )
+            }
+        )
+
+        new_df.loc[sub_df.index, col_name] = sub_df[col_name]
+
+        return (
+            new_df.assign(
+                **{
+                    col_name: (
+                        lambda df_: df_[col_name].ffill().astype("string")
+                    )
+                }
+            )
+            .set_index(index_name)
+            .sort_index()
+        )
+
+    def ffill_offer_id(self, df: pd.DataFrame) -> pd.DataFrame:
+        # FIXME implement
+        return df
+
+    def calculate_cumulative_transactions(
+        self, df: pd.DataFrame
+    ) -> pd.DataFrame:
+        # FIXME implement
+        return df
+
+    def calculate_costs(self, df: pd.DataFrame) -> pd.DataFrame:
+        # FIXME implement
+        return df
+
+    def calculate_profit(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Defining profit as transactions minus costs"""
+        # FIXME implement
+        return df
 
 
 class PortfolioTransformer(TransformerBase):

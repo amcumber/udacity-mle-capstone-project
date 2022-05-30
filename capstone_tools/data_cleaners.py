@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Tuple
 import numpy as np
 import pandas as pd
 
-from capstone_tools.validators import RegistrationError
+from capstone_tools.validators import RegistrationError, validate_cols
 
 # _registered_cleaners: dict[str, CleanerBase] = {}
 _registered_cleaners = {}
@@ -183,21 +183,24 @@ class PortfolioCleaner(CleanerBase):
         """Clean Portfolio DataFrame"""
         STR_COLS = ("id",)
         CAT_COLS = ("offer_type",)
+        RENAME_COLS = {"duration": "duration_days"}
 
-        for col in chain(STR_COLS, CAT_COLS):
+        for col in chain(STR_COLS, CAT_COLS, RENAME_COLS.keys()):
             assert col in self.df.columns, f"Required column missing: {col}"
 
         return (
             self.df.pipe(lambda df_: _assign_categories(df_, CAT_COLS))
             .pipe(lambda df_: _assign_string_cols(df_, STR_COLS))
+            .pipe(lambda df_: df_.rename(columns=RENAME_COLS))
             .pipe(self.make_one_hot_from_channel)
+            .pipe(self.convert_duration_days_to_hours)
         )
 
     @staticmethod
     def make_one_hot_from_channel(df: pd.DataFrame) -> pd.DataFrame:
         """
         Converts the channels column into a series of one-hot columns for each
-        category for the portfolio dataframe
+        category for the portfolio DataFrame
         """
         assert "channels" in df.columns, f"DataFrame needs 'channels' column"
 
@@ -218,6 +221,21 @@ class PortfolioCleaner(CleanerBase):
                 }
             )
         return new_df.drop("channels", axis=1)
+
+    @staticmethod
+    @validate_cols(("duration_days",))
+    def convert_duration_days_to_hours(df: pd.DataFrame) -> pd.DataFrame:
+        old_col = "duration_days"
+        col_name = "duration_hours"
+        DAY2HOUR = 24.0
+
+        return df.assign(
+            **{
+                col_name: (
+                    lambda df_: df_[old_col].apply(lambda x: x * DAY2HOUR)
+                )
+            }
+        )
 
 
 class ProfileCleaner(CleanerBase):

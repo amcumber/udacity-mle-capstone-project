@@ -37,3 +37,4 @@ class Gender:
     m = "M"
     f = "F"
     o = "O"
+    # na = "Not Assigned"
