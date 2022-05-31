@@ -167,46 +167,25 @@ class EventCols:
     base_enums: TranscriptTransformedCols = field(
         repr=False, default_factory=TranscriptTransformedCols
     )
-    index: str = field(init=False)
-    event_id: str = field(init=False)
-    profit: str = field(init=False)
-    time: str = field(init=False)
-    offer_start: str = field(init=False)
-    difficulty: str = field(init=False)
+    index: str = "index"
+    event_id: str = "event_id"
+    profit: str = "profit"
+    time: str = "time"
+    offer_start: str = "offer_start"
+    difficulty: str = "difficulty"
 
-    web: str = field(init=False)
-    email: str = field(init=False)
-    mobile: str = field(init=False)
-    social: str = field(init=False)
-    bogo: str = field(init=False)
-    discount: str = field(init=False)
-    info: str = field(init=False)
+    web: str = "web"
+    email: str = "email"
+    mobile: str = "mobile"
+    social: str = "social"
+    bogo: str = "bogo"
+    discount: str = "discount"
+    info: str = "informational"
 
-    offer_viewed: str = field(init=False)
-    offer_redeemed: str = field(init=False)
+    offer_viewed: str = "offer_viewed"
+    offer_redeemed: str = "offer_redeemed"
 
-    person: str = field(init=False)
-
-    def __post_init__(self):
-        self.index = self.base_enums.index
-        self.event_id = self.base_enums.event_id
-        self.profit = self.base_enums.profit
-        self.time = self.base_enums.time
-        self.offer_start = self.base_enums.offer_start
-        self.difficulty = self.base_enums.difficulty
-
-        self.web = self.base_enums.web
-        self.email = self.base_enums.email
-        self.mobile = self.base_enums.mobile
-        self.social = self.base_enums.social
-        self.bogo = self.base_enums.bogo
-        self.discount = self.base_enums.discount
-        self.info = self.base_enums.info
-
-        self.offer_viewed = self.base_enums.offer_viewed
-        self.offer_redeemed = self.base_enums.offer_redeemed
-
-        self.person = self.base_enums.person
+    person: str = "person"
 
 
 @dataclass

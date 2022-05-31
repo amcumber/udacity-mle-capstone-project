@@ -404,7 +404,6 @@ class ProfileTransformer(TransformerBase):
         )
 
 
-@dataclass
 class EventTransformer(TransformerBase):
     """
     Transformer for Event Specific Elements - used as output from
