@@ -447,6 +447,7 @@ class EventTransformer(TransformerBase):
             ECols.offer_viewed,
             ECols.offer_redeemed,
             ECols.person,
+            ECols.offer_id,
         ]
         return self.df[cols].groupby(ECols.event_id).last()
 

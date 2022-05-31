@@ -164,9 +164,6 @@ class TranscriptTransformedCols(PortfolioCols, TranscriptCols):
 
 @dataclass
 class EventCols:
-    base_enums: TranscriptTransformedCols = field(
-        repr=False, default_factory=TranscriptTransformedCols
-    )
     index: str = "index"
     event_id: str = "event_id"
     profit: str = "profit"
@@ -186,6 +183,7 @@ class EventCols:
     offer_redeemed: str = "offer_redeemed"
 
     person: str = "person"
+    offer_id: str = "offer_id"
 
 
 @dataclass
