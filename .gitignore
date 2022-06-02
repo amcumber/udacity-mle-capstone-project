@@ -133,3 +133,6 @@ make-pdf.ps1
 
 # Ignore packaged submissions
 *.zip
+
+# Ignore intermediate pickle files
+*.pkl
