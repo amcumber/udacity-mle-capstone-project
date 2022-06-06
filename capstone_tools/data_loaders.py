@@ -2,10 +2,10 @@ from typing import Tuple
 import pathlib
 import pickle
 
-import numpy as np
+import pandas as pd
 
 
-def load_dataset(location: pathlib.Path) -> Tuple[np.ndarray, np.ndarray]:
+def load_dataset(location: pathlib.Path) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """
     Load data and labels within a folder location, requires the location to
     have data.pkl and label.pkl within

@@ -373,7 +373,6 @@ class ProfileTransformer(TransformerBase):
     def transform(self):
         return (
             self.df.rename(columns={PTCols.id: PTCols.person})
-            .dropna()
             .pipe(self.get_one_hot_gender)
             .pipe(self.membership_to_int)
         )
@@ -382,7 +381,7 @@ class ProfileTransformer(TransformerBase):
     @validate_cols((PTCols.age,))
     def get_one_hot_gender(df: pd.DataFrame) -> pd.DataFrame:
         """Make Age column a one-hot set"""
-        dummies = pd.get_dummies(df[[PTCols.gender]])
+        dummies = pd.get_dummies(df[[PTCols.gender]], dummy_na=True)
         return (
             pd.concat(objs=(df, dummies), axis=1)
             .drop([PTCols.gender], axis=1)

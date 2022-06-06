@@ -189,8 +189,23 @@ class EventCols:
 @dataclass
 class ProfileTransformedCols(ProfileCols):
     index: str = "index"
-    gender_m: str = "m"
-    gender_f: str = "f"
-    gender_o: str = "o"
+    gender_m: str = "gender_m"
+    gender_f: str = "gender_f"
+    gender_o: str = "gender_o"
+    gender_nan: str = "gender_nan"
     person: str = "person"
     membership: str = "membership"
+
+
+@dataclass
+class ModelDataCols:
+    index: str = "index"
+    age: str = "age"
+    person: str = "person"
+    income: str = "income"
+    gender_f: str = "gender_f"
+    gender_m: str = "gender_m"
+    gender_o: str = "gender_o"
+    gender_nan: str = "gender_nan"
+    membership: str = "membership"
+    best_offer: str = "best_offer"

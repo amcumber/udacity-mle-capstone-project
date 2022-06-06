@@ -1,7 +1,9 @@
 from collections import namedtuple
-from multiprocessing.sharedctypes import Value
-from typing import Dict, Tuple
+from typing import Tuple
+from dataclasses import dataclass
+
 import numpy as np
+import pandas as pd
 from sklearn.model_selection import train_test_split
 
 
@@ -19,6 +21,16 @@ class OverflowFractionError(ValueError):
     """Used to indicate fractions that sum over 1"""
 
     pass
+
+
+@dataclass
+class PreSplitData:
+    """Dataclass to hold scaled numpy data and labels"""
+
+    data: pd.DataFrame
+    labels: pd.DataFrame
+    val_splits: float
+    test_splits: float
 
 
 def train_test_val_split(
@@ -86,3 +98,36 @@ def train_test_val_split(
         DataLabel(X_test, y_test),
         DataLabel(X_val, y_val),
     )
+
+
+def write_dataset(
+    dataset: DataLabelTuple, location: pathlib.Path, subdir: str
+):
+    """write pickles for each type of data  with each dataset"""
+    folder = location.joinpath(subdir)
+    folder.mkdir(exist_ok=True, parents=True)
+    data_file, label_file = (
+        folder / f"{item}.pkl" for item in ("data", "label")
+    )
+    for file, contents in zip((data_file, label_file), dataset):
+        with open(file, "wb") as fh:
+            pickle.dump(contents, fh)
+
+
+def process_scaled_data(
+    scaled_data: PreSplitData,
+    location: pathlib.Path,
+) -> None:
+    """
+    Splits scaled data into test sets, train sets, and validation sets and
+    saves them as pickles in a data subfolder
+    """
+    X, y = scaled_data.data, scaled_data.labels
+    test_split, val_split = scaled_data.test_splits, scaled_data.val_splits
+    datasets = train_test_val_split(
+        X=X, y=y, test_size=test_split, val_size=val_split
+    )
+    for dataset, split_name in zip(datasets, ("train", "test", "validation")):
+        if type(dataset[0]) == type(None):
+            continue
+        write_dataset(dataset, location, split_name)
