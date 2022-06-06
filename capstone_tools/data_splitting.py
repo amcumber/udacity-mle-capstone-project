@@ -1,4 +1,6 @@
 from collections import namedtuple
+import pathlib
+import pickle
 from typing import Tuple
 from dataclasses import dataclass
 
@@ -7,7 +9,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 
-DataLabelTuple = Tuple[np.ndarray, np.ndarray]
+DataLabelType = Tuple[np.ndarray, np.ndarray]
 DataLabel = namedtuple("DataLabel", ["X", "y"])
 
 
@@ -39,7 +41,7 @@ def train_test_val_split(
     test_size: float = 0.2,
     val_size: float = 0.2,
     seed_base: int = 42,
-) -> Tuple[DataLabelTuple, DataLabelTuple, DataLabelTuple]:
+) -> Tuple[DataLabelType, DataLabelType, DataLabelType]:
     """Split a dataset between train, test, and validation
 
     Parameters
@@ -100,9 +102,7 @@ def train_test_val_split(
     )
 
 
-def write_dataset(
-    dataset: DataLabelTuple, location: pathlib.Path, subdir: str
-):
+def write_dataset(dataset: DataLabelType, location: pathlib.Path, subdir: str):
     """write pickles for each type of data  with each dataset"""
     folder = location.joinpath(subdir)
     folder.mkdir(exist_ok=True, parents=True)
