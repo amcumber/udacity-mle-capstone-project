@@ -1,3 +1,4 @@
+import sys
 from abc import ABC
 from collections import defaultdict
 from dataclasses import dataclass
@@ -87,7 +88,9 @@ def dataset_to_dataloader(
     batch_size: int,
 ) -> Dict[str, DataLoader]:
     """Convert custom DataLabelType to a torch DataLoader"""
-    tensor_x, tensor_y = (torch.tensor(ele, dtype=float) for ele in dataset)
+    data, labels = dataset
+    tensor_x = torch.tensor(data, dtype=torch.float)
+    tensor_y = torch.tensor(labels, dtype=torch.long)
     tensor_dataset = TensorDataset(tensor_x, tensor_y)
     return DataLoader(tensor_dataset, batch_size=batch_size, shuffle=True)
 
@@ -162,13 +165,16 @@ class TorchTrainer:
 
             print(
                 f"Epoch: {epoch+1}\tTraining Loss:{train_loss:.4f}\tValid"
-                f" Loss:{valid_loss:.4f}"
+                f" Loss:{valid_loss:.4f}",
+                end="\r",
             )
+            sys.stdout.flush()
             if valid_loss <= valid_loss_min:
                 print(
-                    f"Validation Loss decreased({valid_loss_min:.4f} ->"
-                    f" {valid_loss:.4f} Saving Model..."
+                    f"\nValidation Loss decreased({valid_loss_min:.4f} ->"
+                    f" {valid_loss:.4f}) Saving Model...",
                 )
+                sys.stdout.flush()
                 valid_loss_min = valid_loss
                 self.save(save_path)
                 stop_counter = 0
@@ -189,12 +195,12 @@ class TorchTrainer:
                 data, labels = data.cuda(), labels.cuda()
                 self.clf = self.clf.cuda()
             self.optimizer.zero_grad()
-            output = self.clf(data)
-            preds = torch.argmax(output, dim=1)
+            preds = self.clf(data)
             loss = self.critereon(preds, labels)
             loss.backward()
             self.optimizer.step()
             train_loss += 1 / (batch + 1) * (loss.data - train_loss)
+        train_loss = train_loss.item()
         return train_loss
 
     def eval_epoch(self, data_loader, test_loss=0.0):
@@ -210,17 +216,17 @@ class TorchTrainer:
             if self.use_cuda:
                 data, labels = data.cuda(), labels.cuda()
                 self.clf = self.clf.cuda()
-            output = self.clf(data)
-            preds = torch.argmax(output, dim=1)
+            preds = self.clf(data)
             loss = self.critereon(preds, labels)
             test_loss += 1 / (batch + 1) * (loss.data - test_loss)
             total += data.size(0)
-            correct += np.sum(
-                np.squeeze(preds.eq(labels.data.view_as(preds))).cpu().numpy()
-            )
+            pred_args = torch.argmax(preds, axis=1)
+            correct += torch.sum(pred_args == labels.data)
+        test_loss, correct = (ten.item() for ten in (test_loss, correct))
         return test_loss, (correct, total)
 
-    def eval(self, data_loader):
+    def eval(self, dataset: DataLabelType, batch_size: int):
+        data_loader = dataset_to_dataloader(dataset, batch_size)
         test_loss, (correct, total) = self.eval_epoch(
             data_loader, test_loss=0.0
         )

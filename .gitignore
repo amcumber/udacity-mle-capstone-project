@@ -136,3 +136,4 @@ make-pdf.ps1
 
 # Ignore intermediate pickle files
 *.pkl
+*.pth
