@@ -2,12 +2,18 @@
     "cSpell.words": [
         "astype",
         "bogo",
+        "clfs",
         "Critereon",
         "dataframe",
         "dataframes",
         "hasnans",
         "klass",
-        "subdf"
+        "offerid",
+        "pcas",
+        "preds",
+        "splots",
+        "subdf",
+        "ylim"
     ],
     "python.linting.pylintEnabled": false,
     "python.linting.pylamaEnabled": true,

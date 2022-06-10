@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 from uuid import uuid4
 from attr import field
 
@@ -11,6 +11,7 @@ from capstone_tools.enums import (
     Event,
     EventCols,
     PortfolioCols,
+    ProfileCols,
     ProfileTransformedCols,
     TranscriptCols,
     TranscriptTransformedCols,
@@ -21,6 +22,7 @@ from capstone_tools.validators import validate_cols, RegistrationError
 # _registered_transformers: dict[str, TransformerBase] = {}
 _registered_transformers = {}
 
+ProCols = ProfileCols
 PCols = PortfolioCols()
 TCols = TranscriptCols()
 TTCols = TranscriptTransformedCols()
@@ -125,7 +127,7 @@ class TranscriptTransformer(TransformerBase):
             .pipe(self.assign_elapsed_time)
             .pipe(self.assign_offer_valid)
             .pipe(self.assign_offer_viewed)
-            .pipe(self.assign_reward_redeemed)
+            .pipe(self.assign_offer_redeemed)
             # .pipe(self.assign_offer_success)
             .pipe(self.calculate_sales_total)
             .pipe(self.calculate_costs)
@@ -169,7 +171,7 @@ class TranscriptTransformer(TransformerBase):
         return df.set_index(key).sort_index()
 
     @classmethod
-    @validate_cols((TTCols.time, TTCols.event_id, TTCols.event))
+    # @validate_cols((TTCols.time, TTCols.event_id, TTCols.event))
     def assign_offer_start(cls, df: pd.DataFrame) -> pd.DataFrame:
         """Assign Event Start times to a dataframe filtered by event id"""
         col_name = TTCols.offer_start
@@ -183,7 +185,7 @@ class TranscriptTransformer(TransformerBase):
         return new_df.assign(**{col_name: (lambda df_: df_[col_name].ffill())})
 
     @staticmethod
-    @validate_cols((TTCols.duration_hours,))
+    # @validate_cols((TTCols.duration_hours,))
     def assign_offer_duration(df: pd.DataFrame) -> pd.DataFrame:
         """Assign Event Durations to dataframe filtered by event id"""
         col_name = TTCols.offer_duration
@@ -191,7 +193,7 @@ class TranscriptTransformer(TransformerBase):
         return df.assign(**{col_name: (lambda df_: df_[parent_col].ffill())})
 
     @staticmethod
-    @validate_cols((TTCols.time, TTCols.offer_start))
+    # @validate_cols((TTCols.time, TTCols.offer_start))
     def assign_elapsed_time(df: pd.DataFrame) -> pd.DataFrame:
         """Assign elapsed time of offer"""
         col_name = TTCols.elapsed_time
@@ -204,7 +206,7 @@ class TranscriptTransformer(TransformerBase):
         )
 
     @staticmethod
-    @validate_cols((TTCols.elapsed_time, TTCols.offer_duration))
+    # @validate_cols((TTCols.elapsed_time, TTCols.offer_duration))
     def assign_offer_valid(df: pd.DataFrame) -> pd.DataFrame:
         """Assign valid Boolean for valid offers"""
         col_name = TTCols.offer_valid
@@ -218,7 +220,7 @@ class TranscriptTransformer(TransformerBase):
         )
 
     @classmethod
-    @validate_cols((TTCols.event,))
+    # @validate_cols((TTCols.event,))
     def assign_offer_viewed(cls, df: pd.DataFrame) -> pd.DataFrame:
         """Assign viewed boolean for events after an offer is viewed"""
         col_name = TTCols.offer_viewed
@@ -232,38 +234,18 @@ class TranscriptTransformer(TransformerBase):
         return new_df.assign(**{col_name: (lambda df_: df_[col_name].ffill())})
 
     @classmethod
-    @validate_cols((TTCols.event,))
-    def assign_reward_redeemed(cls, df: pd.DataFrame) -> pd.DataFrame:
-        """Assign viewed boolean for events after an offer is viewed"""
+    def assign_offer_redeemed(cls, df: pd.DataFrame) -> pd.DataFrame:
+        """Assign viewed boolean for events after an offer is viewed
+        ACM Update: new algo - take groupby offer_id and take max value"""
         col_name = TTCols.offer_redeemed
-        new_df = df.assign(**{col_name: np.nan})
-        offer_starts = new_df.query(
-            f"{TCols.event} == '{Event.received}'"
-        ).index
+        new_df = df.assign(**{col_name: False})
         offer_rewarded = new_df.query(
             f"{TCols.event} == '{Event.completed}'"
         ).index
-        new_df.loc[offer_starts, col_name] = False
         new_df.loc[offer_rewarded, col_name] = True
-        return new_df.assign(**{col_name: (lambda df_: df_[col_name].ffill())})
-
-    # # [ACM] Removing since I expect the model to assess if the offer was
-    # #       successful
-    #
-    # @staticmethod
-    # @validate_cols((FCols.offer_viewed, FCols.offer_valid))
-    # def assign_offer_success(df: pd.DataFrame) -> pd.DataFrame:
-    #     """
-    #     Assign transaction events successful if offer_viewed and offer_valid are
-    #     both true
-    #     """
-    #     new_df = df.assign(offer_success=False)
-    #     transactions = new_df.query(f"event == '{Event.transaction}'").index
-    #     new_df.loc[transactions, "offer_success"] = (
-    #         new_df.loc[transactions, FCols.offer_viewed]
-    #         & new_df.loc[transactions, FCols.offer_valid]
-    #     )
-    #     return new_df
+        return new_df.assign(
+            **{col_name: (lambda df_: df_[col_name].astype(int))}
+        )
 
     @staticmethod
     def assign_event_id(
@@ -310,14 +292,14 @@ class TranscriptTransformer(TransformerBase):
         )
 
     @classmethod
-    @validate_cols((TTCols.offer_id,))
+    # @validate_cols((TTCols.offer_id,))
     def ffill_offer_id(cls, df: pd.DataFrame) -> pd.DataFrame:
         """Forward fill offer_id with a sorted df"""
         col_name = TCols.offer_id
         return df.assign(**{col_name: (lambda df_: df_[col_name].ffill())})
 
     @classmethod
-    @validate_cols((TTCols.amount,))
+    # @validate_cols((TTCols.amount,))
     def calculate_sales_total(cls, df: pd.DataFrame) -> pd.DataFrame:
         """Calculate the total sales (cumulative) of for each event id"""
         col_name = TTCols.sales
@@ -352,7 +334,7 @@ class TranscriptTransformer(TransformerBase):
         )
 
     @classmethod
-    @validate_cols((TTCols.costs, TTCols.sales))
+    # @validate_cols((TTCols.costs, TTCols.sales))
     def calculate_profit(cls, df: pd.DataFrame) -> pd.DataFrame:
         """Defining profit as transactions minus costs"""
         col_name = TTCols.profit
@@ -369,19 +351,36 @@ class PortfolioTransformer(TransformerBase):
 @dataclass
 class ProfileTransformer(TransformerBase):
     # events: pd.DataFrame = field(repr=False)
+    n_cats: int = 5
+    na_cat_val: int = 0
+
+    def __post_init__(self):
+        self.categories = {}
 
     def transform(self):
-        return (
+        df = (
             self.df.rename(columns={PTCols.id: PTCols.person})
+            .dropna()
             .pipe(self.get_one_hot_gender)
-            .pipe(self.membership_to_int)
+            # .pipe(self.membership_to_int)
         )
 
+        for col in (ProCols.income, ProCols.became_member_on, ProCols.age):
+            new_col, cats = self.categorize_cont_ser(
+                df[col], self.n_cats, self.na_cat_val
+            )
+            self.categories[col] = cats
+            df = df.assign(**{col: new_col}).pipe(
+                lambda df: self.merge_cats_to_one_hots(df, col)
+            )
+        return df
+
     @staticmethod
-    @validate_cols((PTCols.age,))
     def get_one_hot_gender(df: pd.DataFrame) -> pd.DataFrame:
         """Make Age column a one-hot set"""
-        dummies = pd.get_dummies(df[[PTCols.gender]], dummy_na=True)
+        dummy_na = False
+        # dummy_na = True
+        dummies = pd.get_dummies(df[[PTCols.gender]], dummy_na=dummy_na)
         return (
             pd.concat(objs=(df, dummies), axis=1)
             .drop([PTCols.gender], axis=1)
@@ -389,18 +388,35 @@ class ProfileTransformer(TransformerBase):
         )
 
     @staticmethod
-    @validate_cols((PTCols.became_member_on,))
-    def membership_to_int(df: pd.DataFrame) -> pd.DataFrame:
+    def categorize_cont_ser(
+        ser: pd.Series, n_cats: int, naval: int
+    ) -> Tuple[pd.DataFrame, Dict[int, pd.CategoricalIndex]]:
         """
-        Change membership column to an int equal to the number of days from
-        year 2010.
+        Categorize series into index categories, returning the new categorized
+        series along with a dict of the categories
         """
-        timedelta = df[PTCols.became_member_on].transform(
-            lambda x: x - pd.Timestamp("20100101")
+        qcut_names = pd.qcut(ser, n_cats)
+
+        cats = {i: cat for i, cat in enumerate(qcut_names.cat.categories)}
+        qcut_index = (
+            pd.qcut(ser, n_cats, labels=range(1, n_cats + 1))
+            # .cat.add_categories(naval)
+            # .fillna(naval)
         )
-        return df.assign(**{PTCols.membership: timedelta.dt.days}).drop(
-            [PTCols.became_member_on], axis=1
+        return qcut_index, cats
+
+    @staticmethod
+    def merge_cats_to_one_hots(df: pd.DataFrame, col: str) -> pd.DataFrame:
+        """Convert a categorical column to a one-hot set of columns"""
+        one_hots = pd.get_dummies(df[col], prefix=col)
+        new_df = pd.merge(
+            df.drop([col], axis=1),
+            one_hots,
+            how="left",
+            left_index=True,
+            right_index=True,
         )
+        return new_df
 
 
 class EventTransformer(TransformerBase):
@@ -412,13 +428,21 @@ class EventTransformer(TransformerBase):
     def transform(self) -> pd.DataFrame:
         max_events = self.get_max_event_data()
         last_events = self.get_last_event_data()
-        df = pd.merge(
-            max_events,
-            last_events,
-            left_index=True,
-            right_index=True,
+        df = (
+            pd.merge(
+                max_events,
+                last_events,
+                left_index=True,
+                right_index=True,
+            )
+            .pipe(self.bool_cols_to_float)
+            .assign(
+                viewed_and_redeemed=lambda df_: (
+                    df_[ECols.offer_viewed] * df_[ECols.offer_redeemed]
+                )
+            )
         )
-        return self.bool_cols_to_float(df)
+        return df
 
     # def get_n_elements(self) -> pd.Series:
     #     return self.df.groupby(ECols.event_id)[FCols.person].count()
@@ -437,6 +461,7 @@ class EventTransformer(TransformerBase):
             ECols.bogo,
             ECols.discount,
             ECols.info,
+            ECols.offer_redeemed,
         ]
         return self.df[cols].groupby(ECols.event_id).max()
 
@@ -444,14 +469,13 @@ class EventTransformer(TransformerBase):
         cols = [
             ECols.event_id,
             ECols.offer_viewed,
-            ECols.offer_redeemed,
             ECols.person,
             ECols.offer_id,
         ]
         return self.df[cols].groupby(ECols.event_id).last()
 
     @staticmethod
-    @validate_cols((ECols.offer_viewed, ECols.offer_redeemed))
+    # @validate_cols((ECols.offer_viewed, ECols.offer_redeemed))
     def bool_cols_to_float(df: pd.DataFrame) -> pd.DataFrame:
         bool_cols = [
             ECols.offer_viewed,

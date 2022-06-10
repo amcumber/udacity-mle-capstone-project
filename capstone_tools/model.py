@@ -1,7 +1,5 @@
 from dataclasses import dataclass
-from itertools import zip_longest
 from typing import Tuple
-import torch
 import torch.nn as nn
 
 
@@ -22,7 +20,6 @@ class RecommendationModel(nn.Module):
     def __init__(
         self,
         dimensions: ModelDimensions,
-        act_fun: callable = torch.relu,
         has_dropout: bool = False,
         has_batch_norm: bool = False,
         p_drop=0.2,

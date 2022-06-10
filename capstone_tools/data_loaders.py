@@ -6,8 +6,10 @@ from typing import Dict, Tuple
 import numpy as np
 import pandas as pd
 
-from capstone_tools.enums import ModelDataCols as DCols
+from capstone_tools.enums import ViewedAndRedeemedCols as VRCols
 from capstone_tools.data_splitting import DataLabel, DataLabelType
+
+TARGET = VRCols.viewed_and_redeemed
 
 
 def load_dataset(location: pathlib.Path) -> Tuple[pd.DataFrame, pd.DataFrame]:
@@ -25,7 +27,7 @@ def load_dataset(location: pathlib.Path) -> Tuple[pd.DataFrame, pd.DataFrame]:
 
 def prune_labels(labels: pd.DataFrame) -> np.ndarray:
     """Prune data label to the 'y' values - removing ID information"""
-    return labels[DCols.best_offer].values
+    return labels[TARGET].values
 
 
 def prune_data(data: pd.DataFrame) -> np.ndarray:

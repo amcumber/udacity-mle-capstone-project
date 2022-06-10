@@ -69,6 +69,7 @@ class SKLearnModelTrainer:
 
     def save(self, path: pathlib.Path) -> None:
         """Save Classifier at location"""
+        path.parent.mkdir(exist_ok=True)
         with open(path, "wb") as fh:
             pickle.dump(self.clf, fh)
 
@@ -237,6 +238,7 @@ class TorchTrainer:
 
     def save(self, path: pathlib.Path) -> None:
         """Save Classifier at location"""
+        path.parent.mkdir(exist_ok=True)
         torch.save(self.clf.state_dict(), path)
 
     def predict(self, sample):

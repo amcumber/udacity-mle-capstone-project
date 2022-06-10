@@ -9,6 +9,8 @@ from test import make_test_assets, tear_down_test_assets
 from capstone_tools import feature_generation
 from capstone_tools.data_cleaners import clean
 from capstone_tools.enums import Event
+from capstone_tools.enums import TranscriptTransformedCols as TTCols
+from capstone_tools.enums import ViewedAndRedeemedCols as VRCols
 
 
 # NOTE: data_cleaners must pass tests - otherwise this will fail as well
@@ -205,7 +207,7 @@ class TestTranscriptTransformer(unittest.TestCase):
             .pipe(self.transformer.assign_offer_start)
             .pipe(self.transformer.assign_offer_duration)
             .pipe(self.transformer.assign_elapsed_time)
-            .pipe(self.transformer.assign_reward_redeemed)
+            .pipe(self.transformer.assign_offer_redeemed)
         )
         expected = "offer_redeemed"
         self.assertTrue(expected in df.columns)
@@ -234,7 +236,7 @@ class TestTranscriptTransformer(unittest.TestCase):
             .pipe(self.transformer.assign_offer_start)
             .pipe(self.transformer.assign_offer_duration)
             .pipe(self.transformer.assign_elapsed_time)
-            .pipe(self.transformer.assign_reward_redeemed)
+            .pipe(self.transformer.assign_offer_redeemed)
         )
         df = df.pipe(self.transformer.calculate_sales_total)
         expected = "sales"
@@ -256,7 +258,7 @@ class TestTranscriptTransformer(unittest.TestCase):
             .pipe(self.transformer.assign_offer_start)
             .pipe(self.transformer.assign_offer_duration)
             .pipe(self.transformer.assign_elapsed_time)
-            .pipe(self.transformer.assign_reward_redeemed)
+            .pipe(self.transformer.assign_offer_redeemed)
         )
         df = df.pipe(self.transformer.calculate_costs)
 
@@ -279,7 +281,7 @@ class TestTranscriptTransformer(unittest.TestCase):
             .pipe(self.transformer.assign_offer_start)
             .pipe(self.transformer.assign_offer_duration)
             .pipe(self.transformer.assign_elapsed_time)
-            .pipe(self.transformer.assign_reward_redeemed)
+            .pipe(self.transformer.assign_offer_redeemed)
             .pipe(self.transformer.calculate_sales_total)
             .pipe(self.transformer.calculate_costs)
             .pipe(self.transformer.calculate_profit)
@@ -328,7 +330,7 @@ class TestEventTransformer(unittest.TestCase):
     def test_bool_cols_to_int(self):
         df = self.transformer.get_last_event_data()
         returned = self.transformer.bool_cols_to_float(df)
-        cols = ["offer_viewed", "offer_redeemed"]
+        cols = [VRCols.viewed_and_redeemed]
         for col in cols:
             self.assertTrue(col in returned.columns)
             self.assertTrue(returned[col].dtype == "float")

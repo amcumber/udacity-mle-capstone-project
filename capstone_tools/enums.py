@@ -1,8 +1,61 @@
-from dataclasses import dataclass, field
+from abc import ABC
+from dataclasses import dataclass
+
+
+class CategoryABC(ABC):
+    """
+    ABC to category (Column and Enums) dataclasses - providing a cols function
+    """
+
+    @classmethod
+    def to_list(cls):
+        """Return Enumerations as a list"""
+        cols = [col for col in cls.__dict__ if not col.startswith("_")]
+        return [col for col in cols if col != "to_list"]
 
 
 @dataclass
-class PortfolioCols:
+class Event(CategoryABC):
+    """Enumerations for Events Column in Transcript / Event Log"""
+
+    received: str = "offer received"
+    viewed: str = "offer viewed"
+    transaction: str = "transaction"
+    completed: str = "offer completed"
+
+
+@dataclass
+class Offer(CategoryABC):
+    """Enumerations for Offer Types in Portfolio"""
+
+    bogo: str = "bogo"
+    discount: str = "discount"
+    info: str = "informational"
+
+
+@dataclass
+class Channel(CategoryABC):
+    """Enumerations for Offer Channel Types in Portfolio"""
+
+    web: str = "web"
+    email: str = "email"
+    mobile: str = "mobile"
+    social: str = "social"
+
+
+@dataclass
+class Gender(CategoryABC):
+    """Enumerations for Gender in Profile"""
+
+    m: str = "M"
+    f: str = "F"
+    o: str = "O"
+
+    na: str = "na"
+
+
+@dataclass
+class PortfolioCols(CategoryABC):
     """Column Names that are within the json file for portfolio.json"""
 
     channels: str = "channels"
@@ -12,59 +65,19 @@ class PortfolioCols:
     offer_type: str = "offer_type"
     id: str = "id"
 
-    @property
-    def duration_hours(self):
-        """derived column duration_hours"""
-        return self.get_name(self.duration, "hours")
-
-    @property
-    def duration_days(self):
-        """derived column duration_days"""
-        return self.get_name(self.duration, "days")
-
-    @property
-    def web(self):
-        """derived column web"""
-        return "web"
-
-    @property
-    def email(self):
-        """derived column email"""
-        return "email"
-
-    @property
-    def mobile(self):
-        """derived column mobile"""
-        return "mobile"
-
-    @property
-    def social(self):
-        """derived column social"""
-        return "social"
-
-    @property
-    def info(self):
-        """derived column info"""
-        return "informational"
-
-    @property
-    def bogo(self):
-        """derived column bogo"""
-        return "bogo"
-
-    @property
-    def discount(self):
-        """derived column discount"""
-        return "discount"
-
-    @staticmethod
-    def get_name(root: str, suffix: str) -> str:
-        """Get a name with root followed by suffix"""
-        return f"{root}_{suffix}"
+    duration_hours: str = "duration_hours"
+    duration_days: str = "duration_days"
+    web: str = "web"
+    email: str = "email"
+    mobile: str = "mobile"
+    social: str = "social"
+    info: str = "informational"
+    bogo: str = "bogo"
+    discount: str = "discount"
 
 
 @dataclass
-class ProfileCols:
+class ProfileCols(CategoryABC):
     """Column Names that are within the json file for profile.json"""
 
     gender: str = "gender"
@@ -75,7 +88,7 @@ class ProfileCols:
 
 
 @dataclass
-class TranscriptCols:
+class TranscriptCols(CategoryABC):
     """Column Names that are within the json file for profile.json"""
 
     value: str = "value"
@@ -83,87 +96,49 @@ class TranscriptCols:
     event: str = "event"
     time: str = "time"
 
-    @property
-    def offer_id(self) -> str:
-        """derived column offer_id"""
-        return "offer_id"
-
-    @property
-    def amount(self) -> str:
-        """derived column amount"""
-        return "amount"
-
-    @property
-    def reward(self) -> str:
-        """derived column reward"""
-        return "reward"
+    offer_id: str = "offer_id"
+    amount: str = "amount"
+    reward: str = "reward"
 
 
 @dataclass
-class Event:
-    """Enumerations for Events Column in Transcript / Event Log"""
-
-    received: str = "offer received"
-    viewed: str = "offer viewed"
-    transaction: str = "transaction"
-    completed: str = "offer completed"
-
-
-@dataclass
-class Offer:
-    """Enumerations for Offer Types in Portfolio"""
-
-    bogo: str = "bogo"
-    discount: str = "discount"
-    info: str = "informational"
-
-
-@dataclass
-class Channel:
-    """Enumerations for Offer Channel Types in Portfolio"""
-
-    web: str = "web"
-    email: str = "email"
-    mobile: str = "mobile"
-    social: str = "social"
-
-
-@dataclass
-class Gender:
-    """Enumerations for Gender in Profile"""
-
-    m: str = "M"
-    f: str = "F"
-    o: str = "O"
-
-    @property
-    def na(self) -> str:
-        """derived enumeration na"""
-        return "Not Assigned"
-
-
-@dataclass
-class TranscriptTransformedCols(PortfolioCols, TranscriptCols):
+class TranscriptTransformedCols(CategoryABC):
     """
     Column names for generated Transcript dataframe with implemented feature
     calculations.
     """
 
     index: str = "index"
+    person: str = "person"
+    event: str = "event"
+    time: str = "time"
+    offer_id: str = "offer_id"
+    reward: str = "reward"
+    amount: str = "amount"
+    duration_hours: str = "duration_hours"
+    reward_offer: str = "reward_offer"
+    difficulty: str = "difficulty"
+    offer_type: str = "offer_type"
+    web: str = "web"
+    email: str = "email"
+    social: str = "social"
+    bogo: str = "bogo"
+    discount: str = "discount"
+    informational: str = "informational"
     event_id: str = "event_id"
     offer_start: str = "offer_start"
+    offer_duration: str = "offer_duration"
     elapsed_time: str = "elapsed_time"
     offer_viewed: str = "offer_viewed"
     offer_valid: str = "offer_valid"
-    offer_duration: str = "offer_duration"
+    offer_redeemed: str = "offer_redeemed"
     sales: str = "sales"
     costs: str = "costs"
     profit: str = "profit"
-    offer_redeemed: str = "offer_redeemed"
 
 
 @dataclass
-class EventCols:
+class EventCols(CategoryABC):
     index: str = "index"
     event_id: str = "event_id"
     profit: str = "profit"
@@ -194,18 +169,82 @@ class ProfileTransformedCols(ProfileCols):
     gender_o: str = "gender_o"
     gender_nan: str = "gender_nan"
     person: str = "person"
-    membership: str = "membership"
+    became_member_on_0: str = "became_member_on_0"
+    became_member_on_1: str = "became_member_on_1"
+    became_member_on_2: str = "became_member_on_2"
+    became_member_on_3: str = "became_member_on_3"
+    became_member_on_4: str = "became_member_on_4"
+    became_member_on_5: str = "became_member_on_5"
+    income_0: str = "income_0"
+    income_1: str = "income_1"
+    income_2: str = "income_2"
+    income_3: str = "income_3"
+    income_4: str = "income_4"
+    income_5: str = "income_5"
+    age_0: str = "age_0"
+    age_1: str = "age_1"
+    age_2: str = "age_2"
+    age_3: str = "age_3"
+    age_4: str = "age_4"
+    age_5: str = "age_5"
 
 
 @dataclass
-class ModelDataCols:
+class BestOfferCols(CategoryABC):
     index: str = "index"
-    age: str = "age"
     person: str = "person"
-    income: str = "income"
     gender_f: str = "gender_f"
     gender_m: str = "gender_m"
     gender_o: str = "gender_o"
     gender_nan: str = "gender_nan"
-    membership: str = "membership"
+    became_member_on_0: str = "became_member_on_0"
+    became_member_on_1: str = "became_member_on_1"
+    became_member_on_2: str = "became_member_on_2"
+    became_member_on_3: str = "became_member_on_3"
+    became_member_on_4: str = "became_member_on_4"
+    became_member_on_5: str = "became_member_on_5"
+    income_0: str = "income_0"
+    income_1: str = "income_1"
+    income_2: str = "income_2"
+    income_3: str = "income_3"
+    income_4: str = "income_4"
+    income_5: str = "income_5"
+    age_0: str = "age_0"
+    age_1: str = "age_1"
+    age_2: str = "age_2"
+    age_3: str = "age_3"
+    age_4: str = "age_4"
+    age_5: str = "age_5"
     best_offer: str = "best_offer"
+
+
+@dataclass
+class ViewedAndRedeemedCols(CategoryABC):
+    index: str = "index"
+    person: str = "person"
+    offer_id: str = "offer_id"
+    event_id: str = "event_id"
+    gender_f: str = "gender_f"
+    gender_m: str = "gender_m"
+    gender_o: str = "gender_o"
+    # gender_nan: str = "gender_nan"
+    # became_member_on_0: str = "became_member_on_0"
+    became_member_on_1: str = "became_member_on_1"
+    became_member_on_2: str = "became_member_on_2"
+    became_member_on_3: str = "became_member_on_3"
+    became_member_on_4: str = "became_member_on_4"
+    became_member_on_5: str = "became_member_on_5"
+    # income_0: str = "income_0"
+    income_1: str = "income_1"
+    income_2: str = "income_2"
+    income_3: str = "income_3"
+    income_4: str = "income_4"
+    income_5: str = "income_5"
+    # age_0: str = "age_0"
+    age_1: str = "age_1"
+    age_2: str = "age_2"
+    age_3: str = "age_3"
+    age_4: str = "age_4"
+    age_5: str = "age_5"
+
+    viewed_and_redeemed: str = "viewed_and_redeemed"
