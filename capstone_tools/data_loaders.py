@@ -9,7 +9,7 @@ import pandas as pd
 from capstone_tools.enums import ViewedAndRedeemedCols as VRCols
 from capstone_tools.data_splitting import DataLabel, DataLabelType
 
-TARGET = VRCols.viewed_and_redeemed
+TARGET = VRCols.offer_success
 
 
 def load_dataset(location: pathlib.Path) -> Tuple[pd.DataFrame, pd.DataFrame]:

@@ -132,6 +132,7 @@ class TranscriptTransformedCols(CategoryABC):
     offer_viewed: str = "offer_viewed"
     offer_valid: str = "offer_valid"
     offer_redeemed: str = "offer_redeemed"
+    offer_success: str = "offer_success"
     sales: str = "sales"
     costs: str = "costs"
     profit: str = "profit"
@@ -154,8 +155,9 @@ class EventCols(CategoryABC):
     discount: str = "discount"
     info: str = "informational"
 
-    offer_viewed: str = "offer_viewed"
-    offer_redeemed: str = "offer_redeemed"
+    # offer_viewed: str = "offer_viewed"
+    # offer_redeemed: str = "offer_redeemed"
+    offer_success: str = "offer_success"
 
     person: str = "person"
     offer_id: str = "offer_id"
@@ -247,4 +249,5 @@ class ViewedAndRedeemedCols(CategoryABC):
     age_4: str = "age_4"
     age_5: str = "age_5"
 
-    viewed_and_redeemed: str = "viewed_and_redeemed"
+    # viewed_and_redeemed: str = "viewed_and_redeemed"
+    offer_success: str = "offer_success"
