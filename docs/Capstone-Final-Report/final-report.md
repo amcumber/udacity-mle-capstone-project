@@ -1,17 +1,13 @@
 # Optimizing App Offers With Starbucks
 
-***Capstone Proposal for Udacity's Machine Learning Nanodegree**
+A Capstone Proposal for Udacity's Machine Learning Nanodegree
 
-> **Prepared By:**
+> **Prepared By:**  
+> Author: [Aaron McUmber, Ph.D.](mailto:aaron.mcumber@gmail.com)  
+> Submission Date: 12 June 2022
 >
-> Author: Aaron McUmber, Ph.D.
->
-> Submission Date: 11 June 2022
->
-> **Prepared For:**
->
-> Udacity
->
+> **Prepared For:**  
+> Udacity  
 > Machine Learning Engineer Nanodegree
 
 ## Table of Contents
@@ -34,6 +30,7 @@
   - [Results](#results)
   - [Justification](#justification)
   - [Model Evaluation and Validation](#model-evaluation-and-validation)
+
 
 ## Definition
 
@@ -80,6 +77,7 @@ any data can be derived. First from the portfolio data, channels has multiple
 entries. These values will be expanded to one-hot elements.
 
 `Portfolio`
+
 |      | reward | channels                     | difficulty | duration | offer_type    | id                               |
 | :--- | :----- | :--------------------------- | :--------- | :------- | :------------ | :------------------------------- |
 | 0    | 10     | [email, mobile, social]      | 10         | 7        | bogo          | ae264e3637204a6fb9bb56bc8210ddfd |
@@ -92,6 +90,7 @@ The transcript data has nested data within the value column dependent on event
 type. These values will be expanded as well.
 
 `Transcript`
+
 |      | person                           | event          | value                                            | time |
 | :--- | :------------------------------- | :------------- | :----------------------------------------------- | :--- |
 | 0    | 78afa995795e4d85b5d9ceeca43f5fef | offer received | {'offer id': '9b98b8c7a33c4b65b9aebfe6a799e6d9'} | 0    |
@@ -104,6 +103,7 @@ The profile data has imputed values for NaNs for age (118) and the
 became_member_on data will need to be converted to datetime values.
 
 `Profile`
+
 |      | gender | age  | id                               | became_member_on | income   |
 | :--- | :----- | :--- | :------------------------------- | :--------------- | :------- |
 | 0    | None   | 118  | 68be06ca386d4c31939f3a4f0e3dd783 | 20170212         | NaN      |
@@ -115,6 +115,7 @@ became_member_on data will need to be converted to datetime values.
 Upon cleaning the data the following data sets are shown below:
 
 `Portfolio Cleaned`
+
 |      | offer_reward | offer_difficulty | offer_type    | id                               | web  | email | mobile | social | offer_duration |
 | :--- | :----------- | :--------------- | :------------ | :------------------------------- | :--- | :---- | :----- | :----- | :------------- |
 | 0    | 10           | 10               | bogo          | ae264e3637204a6fb9bb56bc8210ddfd | 0    | 1     | 1      | 1      | 168.0          |
@@ -124,6 +125,7 @@ Upon cleaning the data the following data sets are shown below:
 | 4    | 5            | 20               | discount      | 0b1e1539f2cc45b7b9fa7c272da2e1d7 | 1    | 1     | 0      | 0      | 240.0          |
 
 `Profile Cleaned`
+
 |      | gender | age  | id                               | became_member_on | income   |
 | :--- | :----- | :--- | :------------------------------- | :--------------- | :------- |
 | 0    | NaN    | NaN  | 68be06ca386d4c31939f3a4f0e3dd783 | 2017-02-12       | NaN      |
@@ -133,6 +135,7 @@ Upon cleaning the data the following data sets are shown below:
 | 4    | NaN    | NaN  | a03223e636434f42ac4c3df47e8bac43 | 2017-08-04       | NaN      |
 
 `Transcript Cleaned`
+
 |      | person                           | event          | time | offer_id                         | reward | amount |
 | :--- | :------------------------------- | :------------- | :--- | :------------------------------- | :----- | :----- |
 | 0    | 78afa995795e4d85b5d9ceeca43f5fef | offer received | 0    | 9b98b8c7a33c4b65b9aebfe6a799e6d9 | NaN    | NaN    |
@@ -180,7 +183,18 @@ The primary objective of this project is to build a best classifier using
 either a custom fully-connected neural network or a machine learning model from
 the Scikit-learn toolbox.
 
-Prior to feeding the classifier model  TODO FIXME
+The cleaned data was then process to generate an offer success metric which was
+used as the predictive target for the classifiers predicting if an offer was or
+was not successful. Dependent on customer interaction with the offer.
+
+Prior to feeding the classifier model principal component analysis (PCA) was
+performed to analyze the input vectors and compress the vector state to while
+maintaining maximum variance within the model. The input vectors were also
+scaled using a standard scaler and any nans are imputed as the median value for
+each vector.
+
+Classifiers were selected across a variety of machine learning models and a
+custom neural network. The models selected were
 
 The neural network has been implemented using pytorch. Three hidden layers of
 256 nodes have been selected and batch normalization and dropout was inserted
@@ -191,17 +205,44 @@ the algorithms, in order to provide the most effective model without overt
 optimization. This was an engineering decision in order to quickly evaluate
 against the scikit-learn model implemented as well.
 
-The scikit-learn models were selected were
+The scikit-learn models were selected in order of complexity were
+Logistic Regression, Decision Tree, Gaussian Naive Bayes, Random Forrest,
+Gradient Boost, Ada Boost, and a Fully Connected Neural Network. Aside from
+the neural network all models were implemented using scikit-learn and the 
+neural network was implemented using pytorch. Finally, the best scikit-learn
+model was optimized using scikit's `RandomizedSearchCV` model in investigate
+potential optimizations.
+
+Evaluation is conducted using accuracy and comparison to the baseline model,
+mentioned below. F1 Score, precision, and recall were considered, especially
+given the observed skew in the dataset. However, though skew was observed,
+considering optimization above the benchmark model provided enough information
+to evaluate the models. Though, if the dataset had greater skew (e.g. 90%
+baseline accuracy) additional methods would have been implemented.
 
 ### Benchmark
 
+The baseline classifier used for model evaluation and comparison was
+scikit-learn's `DummyClassifier` using the most frequent strategy. This
+baseline classifier disregards inputs and selects only the most frequent label.
+This classifier was selected as a method to identify any slight bias into the
+dataset and methods to adjust for such bias. Note, this strategy does not work
+well for extreme bias and other methodologies should be explored. Though given
+the observed bias on the order of 60%, identifying the bias fo the data set
+was sufficient for the model performance analysis.
 
 ## Methodology
 
 ### Data Preprocessing
 
-Feature generation will transform the cleaned data to derived values.
-The following list describes each field and the intended use:
+After cleaning the json data set into dataframes with primitive data types
+(int, float, string, category, etc.) additional features are required to
+generate before feeding the data into a model. First, the transcript dataset
+contains information about each individual atomistic event. These atomistic
+events need to be converted to each offer duration and collect metrics of each 
+offer. These features are generated by the addition of some additional fields.
+Once these fields are generated, the dataset can be condensed into offer events 
+utilizing key information using the following fields:
 
 1. `event_id`: This is a unique id generated for each unique offer period 
    started by an "Offer Received" event
@@ -242,17 +283,94 @@ to the individual.
 
 ### Refinement
 
+Upon filtering the data the offer type appears to have different response
+metrics, unfortunately. Applying predictive measurements using the entire
+corpus yields inexact models. Upon reviewing additional data correlations
+the BOGO offer type appears to have strong correlations with the input vectors.  
+![Pair Plot of Key Metrics for BOGO offers](assets/bogo-pair-plot.png)
 
-![Pair Plot of Key Metrics](assets/bogo-pair-plot.png)
-
-![PCA Analysis](assets/pca-var.png)
+Filtering the dataset to BOGO offers provided improved results. Though, PCA
+analysis suggests that some vectors may be condensed into a smaller set of
+composite vectors while maintaining similar explained variance.  
+![PCA Analysis](assets/pca-var.png)  
+Given explained variance, a reduction the number of components by 40% retains
+similar variance and reduces the number of input vectors. Therefore, the final
+PCA model used will contain 15 components to reduce the number of input vectors
+into the classifiers.
 
 ### Implementation
 
-![Custom FC Net Loss vs Time](assets/nn-loss.png)
+Several implementation strategies have been utilized to achieve model analysis.
+First, the algorithms implemented to clean the dataset and generate the
+features for model ingestion were developed using a factory pattern. The
+classifier models were built alongside an associated trainer class that was
+developed using a facade archetype such that, if necessary, a common API 
+between the scikit-learn and pytorch models could be interfaced with via the
+trainer class. Moreover, the `Pipeline` class was heavily leveraged to feed
+data into models such that the data is scaled, imputed, and PCA applied prior
+to model ingestion.
 
 ## Results
 
 ## Justification
 
+Analyzing the Starbucks customer data is quite challenging. The provided data
+can be analyzed and manipulated several ways to produce varying degrees of
+success.
+
+Though the performance of the classifiers were less than anticipated and
+certainly a much more simple set of models than the design originally proposed.
+Several performance indicators and engineering decisions were necessary to
+drive a model capable of performing close to previously reported evaluations.
+Given additional optimization, greater accuracy could be attained. However,
+the review of several models may provide additional benchmarks for the readers
+and additional analysis of the dataset.
+
+The top performing models, the neural network and the gradient boost classifiers
+demonstrate measurable increased classification performance over the dummy
+classifier and mark medium performance. This information can still provide
+useful information and analysis to perform business decisions moving forward.
+Through analysis decisions can be made to either tailor the next offer
+performance champaign or provide information towards phasing out under
+performing offers given the existing analysis.
+
 ## Model Evaluation and Validation
+
+The datasets were split 60-20-20 into training, validation, testing sets.
+Due to the nature of the scikit learn model structure, these models were
+trained on the training set and tested against the test set. The pytorch
+models were trained on the training set and validated between each epoch
+against the validation set. These metrics provided evaluation metrics to
+continue model training or triggering early stopping set at a patience of 10
+epochs. Ultimately, the pytorch model was halted at 18 epochs due to an early
+stopping callback event.
+
+Along with the my original proposal, I first attempted to build models that
+were capable of predicting the best offer type provided similar data inputs.
+The best offer was determined by the sum of the sales from the transactions
+between offer events minus the reward generated by the offer. Unfortunately,
+this method did not produce any models that performed better than a dummy
+classifier and the effort was discarded.
+
+A new analysis strategy was adopted after this first failed attempt to analyze
+offer success. Offer success was defined by an offer that was completed, within
+the offer validity time, defined by the duration of the offer, and that was
+viewed by the customer prior to completing the offer. Similar models were
+tested as before, but upon the entire corpus of data. However, the results of
+this analysis and model production generated an optimal model able to predict
+if an offer will be successful with a ~6% accuracy better than a dummy
+classifier.
+
+Finally, the data was filtered to only BOGO offers (shown in this notebook).
+Where the two best models, Gradient Boosting and a custom fully connected
+neural network with batch normalization and dropout, were able to produce
+similar performance of an 8.2% and 8.4% accuracy better than dummy classifier (
+test accuracy of 68.57% and 68.76%), respectively. The following figure
+demonstrates the loss over epoch of the neural network.  
+![Custom FC Net Loss vs Epoch](assets/nn-loss.png)
+
+As a comparison, I reviewed other posts covering similar data analysis of the
+Starbucks customer dataset and found that others were able to achieve a similar
+analysis with model performance closer to 71% using XGBoost. This is may beh
+worth considering - though I suspect, I may need to clean my data in by some
+additional means to achieve such performance.
