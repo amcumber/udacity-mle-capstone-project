@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from cProfile import label
 from dataclasses import dataclass
 from itertools import chain
 from typing import Any, Dict, List, Tuple
@@ -6,12 +7,11 @@ from typing import Any, Dict, List, Tuple
 import numpy as np
 import pandas as pd
 
-from capstone_tools.validators import RegistrationError, validate_cols
-from capstone_tools.enums import PortfolioCols
-
-# _registered_cleaners: dict[str, CleanerBase] = {}
 _registered_cleaners = {}
-PCols = PortfolioCols()
+
+
+class RegistrationError(KeyError):
+    """Registration Error for Registered Classes"""
 
 
 def clean(df: pd.DataFrame, key: str) -> pd.DataFrame:
@@ -38,7 +38,7 @@ def _assign_empty(ser: pd.Series, assign_to: Dict[Any, Any]) -> pd.Series:
 
 
 def _assign_categories(
-    df: pd.DataFrame, category_cols: List[Any]
+    df: pd.DataFrame, category_cols: List[Any], as_int=False
 ) -> pd.DataFrame:
     """
     Assign columns as categories specified in category_cols
@@ -54,7 +54,11 @@ def _assign_categories(
     """
     new_df = df.copy()
     for col in category_cols:
-        new_df = new_df.assign(**{col: (lambda df: pd.Categorical(df[col]))})
+        new_col = pd.Categorical(new_df[col])
+        if as_int:
+            new_col = new_col.codes
+
+        new_df = new_df.assign(**{col: new_col})
 
     return new_df
 
@@ -135,8 +139,6 @@ class TranscriptCleaner(CleanerBase):
         """
         Add expand categories within the "value" column within an Event Log
         DataFrame.
-
-        ~~Pipeable~~
         """
         value_map = cls._get_value_map(df)  # Performs Validation
         for event, subdf in df.groupby("event"):
@@ -183,20 +185,25 @@ class PortfolioCleaner(CleanerBase):
 
     def clean(self) -> pd.DataFrame:
         """Clean Portfolio DataFrame"""
+        DAYS = "duration_days"
         STR_COLS = ("id",)
         CAT_COLS = ("offer_type",)
-        RENAME_COLS = {"duration": "duration_days"}
-
-        for col in chain(STR_COLS, CAT_COLS, RENAME_COLS.keys()):
-            assert col in self.df.columns, f"Required column missing: {col}"
+        INIT_RENAME_COLS = {
+            "duration": DAYS,
+            "reward": "offer_reward",
+            "difficulty": "offer_difficulty",
+        }
+        FINAL_RENAME = {"duration_hours": "offer_duration"}
 
         return (
             self.df.pipe(lambda df_: _assign_categories(df_, CAT_COLS))
             .pipe(lambda df_: _assign_string_cols(df_, STR_COLS))
-            .pipe(lambda df_: df_.rename(columns=RENAME_COLS))
+            .pipe(lambda df_: df_.rename(columns=INIT_RENAME_COLS))
             .pipe(self.make_one_hot_from_channel)
-            .pipe(self.make_one_hot_from_offer_type)
+            # .pipe(self.make_one_hot_from_offer_type)
             .pipe(self.convert_duration_days_to_hours)
+            .drop([DAYS], axis=1)
+            .pipe(lambda df_: df_.rename(columns=FINAL_RENAME))
         )
 
     @staticmethod
@@ -205,7 +212,7 @@ class PortfolioCleaner(CleanerBase):
         Converts the channels column into a series of one-hot columns for each
         category for the portfolio DataFrame
         """
-        assert "channels" in df.columns, f"DataFrame needs 'channels' column"
+        assert "channels" in df.columns, "DataFrame needs 'channels' column"
 
         df = df.copy()
         # Note: assumes one list has all categories - this is true by
@@ -226,22 +233,20 @@ class PortfolioCleaner(CleanerBase):
         return new_df.drop("channels", axis=1)
 
     @staticmethod
-    @validate_cols((PCols.offer_type,))
     def make_one_hot_from_offer_type(df: pd.DataFrame) -> pd.DataFrame:
         """
         Converts the channels column into a series of one-hot columns for each
         category for the portfolio DataFrame
         """
-        dummies = pd.get_dummies(df[[PCols.offer_type]]).rename(
-            columns=lambda x: x.split(f"{PCols.offer_type}_")[1]
+        dummies = pd.get_dummies(df[["offer_type"]]).rename(
+            columns=lambda x: x.split("offer_type_")[1]
         )
         return pd.concat(objs=(df, dummies), axis=1)
 
     @staticmethod
-    @validate_cols((PCols.duration_days,))
     def convert_duration_days_to_hours(df: pd.DataFrame) -> pd.DataFrame:
-        old_col = PCols.duration_days
-        col_name = PCols.duration_hours
+        old_col = "duration_days"
+        col_name = "duration_hours"
         DAY2HOUR = 24.0
 
         return df.assign(
@@ -258,6 +263,10 @@ class ProfileCleaner(CleanerBase):
 
     def clean(self) -> pd.DataFrame:
         """Clean Profile DataFrame"""
+
+        def to_datetime(df_):
+            return pd.to_datetime(df_["became_member_on"], format="%Y%m%d")
+
         STR_COLS = ("id",)
         CAT_COLS = ("gender",)
         DATE_COLS = ("became_member_on",)
@@ -268,16 +277,7 @@ class ProfileCleaner(CleanerBase):
         return (
             self.df.pipe(lambda df_: _assign_categories(df_, CAT_COLS))
             .pipe(lambda df_: _assign_string_cols(df_, STR_COLS))
-            .assign(
-                **{
-                    col: (
-                        lambda df_: pd.to_datetime(
-                            df_["became_member_on"], format="%Y%m%d"
-                        )
-                    )
-                    for col in DATE_COLS
-                }
-            )
+            .assign(**{col: to_datetime for col in DATE_COLS})
             .assign(
                 **{
                     col: (lambda df_: _assign_empty(df_[col], na_map))

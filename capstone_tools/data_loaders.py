@@ -1,15 +1,13 @@
 import pathlib
 import pickle
-from collections import namedtuple
 from typing import Dict, Tuple
 
 import numpy as np
 import pandas as pd
 
-from capstone_tools.enums import ViewedAndRedeemedCols as VRCols
 from capstone_tools.data_splitting import DataLabel, DataLabelType
 
-TARGET = VRCols.offer_success
+TARGET = "offer_success"
 
 
 def load_dataset(location: pathlib.Path) -> Tuple[pd.DataFrame, pd.DataFrame]:

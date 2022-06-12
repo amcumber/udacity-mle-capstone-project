@@ -1,16 +1,16 @@
+import pathlib
+import pickle
 import sys
 from abc import ABC
 from collections import defaultdict
 from dataclasses import dataclass
-import pathlib
-import pickle
 from typing import Any, Dict
-import numpy as np
 
+import numpy as np
 import torch
 import torch.nn as nn
-from torch.utils.data import TensorDataset, DataLoader
 from sklearn.metrics import accuracy_score
+from torch.utils.data import DataLoader, TensorDataset
 
 from capstone_tools.data_splitting import DataLabelType
 

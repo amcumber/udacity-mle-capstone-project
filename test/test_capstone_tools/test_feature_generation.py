@@ -9,8 +9,6 @@ from test import make_test_assets, tear_down_test_assets
 from capstone_tools import feature_generation
 from capstone_tools.data_cleaners import clean
 from capstone_tools.enums import Event
-from capstone_tools.enums import TranscriptTransformedCols as TTCols
-from capstone_tools.enums import ViewedAndRedeemedCols as VRCols
 
 
 # NOTE: data_cleaners must pass tests - otherwise this will fail as well
@@ -52,7 +50,7 @@ class TestTranscriptTransformer(unittest.TestCase):
                 ]
                 clean_df.event = clean_df.event.astype("category")
             setattr(self, name, clean_df)
-        self.transformer = feature_generation.TranscriptTransformer(
+        self.transformer = feature_generation.EventTransformer(
             self.transcript,
             self.portfolio,
         )
@@ -61,12 +59,12 @@ class TestTranscriptTransformer(unittest.TestCase):
         tear_down_test_assets.main()
 
     def test_init(self):
-        transformer = feature_generation.TranscriptTransformer(
+        transformer = feature_generation.EventTransformer(
             self.transcript,
             self.portfolio,
         )
         self.assertTrue(
-            isinstance(transformer, feature_generation.TranscriptTransformer)
+            isinstance(transformer, feature_generation.EventTransformer)
         )
 
     def test_merge_portfolio(self):
@@ -303,17 +301,17 @@ class TestEventTransformer(unittest.TestCase):
         self.tc = TestTranscriptTransformer()
         self.tc.setUp()
         self.input = self.tc.transformer.transform()
-        self.transformer = feature_generation.EventTransformer(self.input)
+        self.transformer = feature_generation.OutcomeTransformer(self.input)
 
     def tearDown(self) -> None:
         return self.tc.tearDown()
 
     def test_init(self):
-        transformer = feature_generation.EventTransformer(
+        transformer = feature_generation.OutcomeTransformer(
             self.input,
         )
         self.assertTrue(
-            isinstance(transformer, feature_generation.EventTransformer)
+            isinstance(transformer, feature_generation.OutcomeTransformer)
         )
 
     def test_transform(self):
@@ -323,14 +321,14 @@ class TestEventTransformer(unittest.TestCase):
         self.assertTrue(len(df) == len(df.dropna()))
 
     def test_get_max_event_data(self):
-        df = self.transformer.get_max_event_data()
+        df = self.transformer.get_labels()
         expected = len(self.input["event_id"].unique())
         self.assertTrue(len(df) == expected)
 
     def test_bool_cols_to_int(self):
-        df = self.transformer.get_last_event_data()
+        df = self.transformer.get_input_data()
         returned = self.transformer.bool_cols_to_float(df)
-        cols = [VRCols.viewed_and_redeemed]
+        cols = ["viewed_and_redeemed"]
         for col in cols:
             self.assertTrue(col in returned.columns)
             self.assertTrue(returned[col].dtype == "float")

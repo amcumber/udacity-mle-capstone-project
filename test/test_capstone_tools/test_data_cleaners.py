@@ -4,7 +4,6 @@ import pandas as pd
 
 from test import make_test_assets, tear_down_test_assets
 
-# from capstone_tools.data_cleaners import clean
 from capstone_tools.data_cleaners import PortfolioCleaner
 
 
