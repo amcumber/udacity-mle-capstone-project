@@ -14317,7 +14317,45 @@ a.anchor-link {
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="Data-Exploration">Data Exploration<a class="anchor-link" href="#Data-Exploration">&#182;</a></h2>
+<h2 id="Project-Definition">Project Definition<a class="anchor-link" href="#Project-Definition">&#182;</a></h2>
+</div>
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="Additional-Background">Additional Background<a class="anchor-link" href="#Additional-Background">&#182;</a></h2><p>Marketing new products and offers is a difficult and critical aspect to any
+business endeavor. Well established companies such as Starbucks regularly
+require new marketing strategies in order to maintain their customer loyalty
+and maintain an advantage ahead of their competition.</p>
+<p>Targeting customers with new offers and promotions can have mixed results
+depending on the customer's preferences and interests. While some promotions
+may encourage increased attendance, other promotions to the same customer base
+may not elicit strong responses, or perhaps elicit negative responses.
+Building advertising models that are careful to consider customer pervious
+habits and demographic information can produce tailored recommendations to
+deliver the most effective promotion strategy in an effort to maximize
+customer loyalty.</p>
+<p>The business case for building effective marketing models are clear, additional
+technological implications about time-phased recommendations presents an 
+interesting challenge to build effective models where a recommendation may 
+differ depending on timing in addition to a customer's profile.</p>
+<h2 id="Problem-Statement">Problem Statement<a class="anchor-link" href="#Problem-Statement">&#182;</a></h2><p>The analysis for this final report has developed predictive models that can
+predict if a BOGO offer will be effective provided BOGO offer details as well
+as customer profile data.</p>
+
+</div>
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="Metrics">Metrics<a class="anchor-link" href="#Metrics">&#182;</a></h2><p>The models generated will be evaluated using accuracy and against a 
+DummyClassifier that will serve as a baseline accuracy. The DummyClassifier 
+will select the most frequent class regardless of inputs. This will provide 
+insight to any applied bias to the datasets.</p>
+
+</div>
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="Analysis">Analysis<a class="anchor-link" href="#Analysis">&#182;</a></h2><h3 id="Data-Exploration">Data Exploration<a class="anchor-link" href="#Data-Exploration">&#182;</a></h3>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
@@ -14416,8 +14454,6 @@ Requirement already satisfied: colorama in d:\programdata\miniconda3\envs\pytorc
 <span class="kn">import</span> <span class="nn">pathlib</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="c1"># import math</span>
-<span class="c1"># import json</span>
 
 <span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">display</span>
 
@@ -14439,11 +14475,6 @@ Requirement already satisfied: colorama in d:\programdata\miniconda3\envs\pytorc
 </div>
 </div>
 
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="Data-Exploration">Data Exploration<a class="anchor-link" href="#Data-Exploration">&#182;</a></h2><h3 id="Review-DataFrames">Review DataFrames<a class="anchor-link" href="#Review-DataFrames">&#182;</a></h3>
-</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
@@ -14759,7 +14790,7 @@ Requirement already satisfied: colorama in d:\programdata\miniconda3\envs\pytorc
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="Data-Cleaning">Data Cleaning<a class="anchor-link" href="#Data-Cleaning">&#182;</a></h2><p>The following cell will write a file into a local module and be loaded to clean
+<h2 id="Data-Preprocessing">Data Preprocessing<a class="anchor-link" href="#Data-Preprocessing">&#182;</a></h2><p>The following cell will write a file into a local module and be loaded to clean
 the dataframes before feature engineering will be performed. This will add
 values to null that were coded as another value, expand nested data types into
 columns; such as lists; categorize columns where appropriate, and convert
@@ -15961,314 +15992,6 @@ to the individual.</p>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[141]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">tx_events</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">:]</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[141]:</div>
-
-
-
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html">
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>offer_reward</th>
-      <th>offer_difficulty</th>
-      <th>offer_type</th>
-      <th>web</th>
-      <th>email</th>
-      <th>mobile</th>
-      <th>social</th>
-      <th>offer_duration</th>
-      <th>event_id</th>
-      <th>offer_start</th>
-      <th>elapsed_time</th>
-      <th>offer_valid</th>
-      <th>offer_viewed</th>
-      <th>offer_redeemed</th>
-      <th>offer_success</th>
-      <th>sales</th>
-      <th>costs</th>
-      <th>profit</th>
-    </tr>
-    <tr>
-      <th>index</th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>155351</th>
-      <td>10.0</td>
-      <td>10.0</td>
-      <td>bogo</td>
-      <td>1.0</td>
-      <td>1.0</td>
-      <td>1.0</td>
-      <td>1.0</td>
-      <td>120.0</td>
-      <td>000220b2730c49459da9fe32129dc3f6</td>
-      <td>408.0</td>
-      <td>0.0</td>
-      <td>1</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0.00</td>
-      <td>0.0</td>
-      <td>0.00</td>
-    </tr>
-    <tr>
-      <th>168993</th>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>120.0</td>
-      <td>000220b2730c49459da9fe32129dc3f6</td>
-      <td>408.0</td>
-      <td>6.0</td>
-      <td>1</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>1.13</td>
-      <td>0.0</td>
-      <td>1.13</td>
-    </tr>
-    <tr>
-      <th>172394</th>
-      <td>10.0</td>
-      <td>10.0</td>
-      <td>bogo</td>
-      <td>1.0</td>
-      <td>1.0</td>
-      <td>1.0</td>
-      <td>1.0</td>
-      <td>120.0</td>
-      <td>000220b2730c49459da9fe32129dc3f6</td>
-      <td>408.0</td>
-      <td>12.0</td>
-      <td>1</td>
-      <td>1</td>
-      <td>0</td>
-      <td>0</td>
-      <td>1.13</td>
-      <td>0.0</td>
-      <td>1.13</td>
-    </tr>
-    <tr>
-      <th>6399</th>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>informational</td>
-      <td>0.0</td>
-      <td>1.0</td>
-      <td>1.0</td>
-      <td>1.0</td>
-      <td>72.0</td>
-      <td>000229b97f63420e8799a38773c7a18f</td>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>1</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0.00</td>
-      <td>0.0</td>
-      <td>0.00</td>
-    </tr>
-    <tr>
-      <th>14124</th>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>informational</td>
-      <td>0.0</td>
-      <td>1.0</td>
-      <td>1.0</td>
-      <td>1.0</td>
-      <td>72.0</td>
-      <td>000229b97f63420e8799a38773c7a18f</td>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>1</td>
-      <td>1</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0.00</td>
-      <td>0.0</td>
-      <td>0.00</td>
-    </tr>
-    <tr>
-      <th>14125</th>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>72.0</td>
-      <td>000229b97f63420e8799a38773c7a18f</td>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>1</td>
-      <td>1</td>
-      <td>0</td>
-      <td>0</td>
-      <td>2.36</td>
-      <td>0.0</td>
-      <td>2.36</td>
-    </tr>
-    <tr>
-      <th>23305</th>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>72.0</td>
-      <td>000229b97f63420e8799a38773c7a18f</td>
-      <td>0.0</td>
-      <td>24.0</td>
-      <td>1</td>
-      <td>1</td>
-      <td>0</td>
-      <td>0</td>
-      <td>3.24</td>
-      <td>0.0</td>
-      <td>3.24</td>
-    </tr>
-    <tr>
-      <th>118185</th>
-      <td>5.0</td>
-      <td>5.0</td>
-      <td>bogo</td>
-      <td>1.0</td>
-      <td>1.0</td>
-      <td>1.0</td>
-      <td>1.0</td>
-      <td>120.0</td>
-      <td>0002b54031f44094b18a426774737129</td>
-      <td>336.0</td>
-      <td>0.0</td>
-      <td>1</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0.00</td>
-      <td>0.0</td>
-      <td>0.00</td>
-    </tr>
-    <tr>
-      <th>131726</th>
-      <td>5.0</td>
-      <td>5.0</td>
-      <td>bogo</td>
-      <td>1.0</td>
-      <td>1.0</td>
-      <td>1.0</td>
-      <td>1.0</td>
-      <td>120.0</td>
-      <td>0002b54031f44094b18a426774737129</td>
-      <td>336.0</td>
-      <td>12.0</td>
-      <td>1</td>
-      <td>1</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0.00</td>
-      <td>0.0</td>
-      <td>0.00</td>
-    </tr>
-    <tr>
-      <th>136524</th>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>120.0</td>
-      <td>0002b54031f44094b18a426774737129</td>
-      <td>336.0</td>
-      <td>24.0</td>
-      <td>1</td>
-      <td>1</td>
-      <td>0</td>
-      <td>0</td>
-      <td>11.81</td>
-      <td>0.0</td>
-      <td>11.81</td>
-    </tr>
-  </tbody>
-</table>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[43]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
@@ -16671,6 +16394,11 @@ to the individual.</p>
 
 </div>
 
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="Data-Refinement">Data Refinement<a class="anchor-link" href="#Data-Refinement">&#182;</a></h2>
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
@@ -17207,7 +16935,7 @@ categories the inclusion of NANs are much easier to keep.</p>
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="Standard-Scaling">Standard Scaling<a class="anchor-link" href="#Standard-Scaling">&#182;</a></h3><p>If nans still exist within the data the models will break, in order to prevent
+<h2 id="Model-Implementation">Model Implementation<a class="anchor-link" href="#Model-Implementation">&#182;</a></h2><h3 id="Standard-Scaling">Standard Scaling<a class="anchor-link" href="#Standard-Scaling">&#182;</a></h3><p>If nans still exist within the data the models will break, in order to prevent
 an accident - I will apply a median imputer to impute any nan data - though my
 data cleaning should have accounted for this already.</p>
 
@@ -19189,7 +18917,7 @@ the performance is only 8.4% better than a random choice.</p>
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="Conclusion">Conclusion<a class="anchor-link" href="#Conclusion">&#182;</a></h2><p>Analyzing the Starbucks customer data is quite challenging. The provided data
+<h2 id="Final-Model-Evaluation">Final Model Evaluation<a class="anchor-link" href="#Final-Model-Evaluation">&#182;</a></h2><p>Analyzing the Starbucks customer data is quite challenging. The provided data
 can be analyzed and manipulated several ways to produce varying degrees of
 success.</p>
 <p>Along with the my original proposal, I first attempted to build models that
@@ -19215,6 +18943,11 @@ Starbucks customer dataset and found that others were able to achieve a similar
 analysis with model performance closer to 71% using XGBoost. This is may be 
 worth considering - though I suspect, I may need to clean my data in by some
 additional means to achieve such performance.</p>
+
+</div>
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
 
 </div>
 </div>
